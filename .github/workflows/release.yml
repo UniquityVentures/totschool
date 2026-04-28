@@ -20,11 +20,11 @@ jobs:
 
       - name: Build all deployments
         run: |
-          go build -ldflags "-s -w" -o "totschool_lago"
+          go build -ldflags "-s -w" -o "main"
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          files: totschool_lago
+          files: main
           generate_release_notes: true
 
