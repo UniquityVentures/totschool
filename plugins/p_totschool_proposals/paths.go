@@ -1,52 +1,24 @@
 package p_totschool_proposals
 
 import (
-	"github.com/UniquityVentures/lago/lago"
+	"github.com/UniquityVentures/lamu/lamu"
+	"github.com/UniquityVentures/lamu/registry"
 )
 
-func init() {
-	_ = lago.RegistryRoute.Register("proposals.ListRoute", lago.Route{
-		Path:    AppUrl,
-		Handler: lago.NewDynamicView("proposals.ListView"),
-	})
-	_ = lago.RegistryRoute.Register("proposals.CreateRoute", lago.Route{
-		Path:    AppUrl + "create/",
-		Handler: lago.NewDynamicView("proposals.CreateView"),
-	})
-	_ = lago.RegistryRoute.Register("proposals.DetailRoute", lago.Route{
-		Path:    AppUrl + "{id}/",
-		Handler: lago.NewDynamicView("proposals.DetailView"),
-	})
-	_ = lago.RegistryRoute.Register("proposals.UpdateRoute", lago.Route{
-		Path:    AppUrl + "{id}/edit/",
-		Handler: lago.NewDynamicView("proposals.UpdateView"),
-	})
-	_ = lago.RegistryRoute.Register("proposals.DeleteRoute", lago.Route{
-		Path:    AppUrl + "{id}/delete/",
-		Handler: lago.NewDynamicView("proposals.DeleteView"),
-	})
-	_ = lago.RegistryRoute.Register("proposals.GenerateRoute", lago.Route{
-		Path:    AppUrl + "{id}/generate/",
-		Handler: lago.NewDynamicView("proposals.GenerateView"),
-	})
-	_ = lago.RegistryRoute.Register("proposals.CancelRoute", lago.Route{
-		Path:    AppUrl + "{id}/cancel/",
-		Handler: lago.NewDynamicView("proposals.CancelView"),
-	})
-	_ = lago.RegistryRoute.Register("proposals.AiEditFormRoute", lago.Route{
-		Path:    AppUrl + "{id}/ai-edit/form/",
-		Handler: lago.NewDynamicView("proposals.AiEditFormView"),
-	})
-	_ = lago.RegistryRoute.Register("proposals.AiEditRoute", lago.Route{
-		Path:    AppUrl + "{id}/ai-edit/",
-		Handler: lago.NewDynamicView("proposals.AiEditView"),
-	})
-	_ = lago.RegistryRoute.Register("proposals.ExportPdfRoute", lago.Route{
-		Path:    AppUrl + "{id}/export-pdf/",
-		Handler: lago.NewDynamicView("proposals.ExportPdfView"),
-	})
-	_ = lago.RegistryRoute.Register("proposals.ExportDocxRoute", lago.Route{
-		Path:    AppUrl + "{id}/export-docx/",
-		Handler: lago.NewDynamicView("proposals.ExportDocxView"),
-	})
+func pluginRoutes() lamu.PluginFeatures[lamu.Route] {
+	return lamu.PluginFeatures[lamu.Route]{
+		Entries: []registry.Pair[string, lamu.Route]{
+			{Key: "proposals.ListRoute", Value: lamu.Route{Path: AppUrl, Handler: lamu.NewDynamicView("proposals.ListView")}},
+			{Key: "proposals.CreateRoute", Value: lamu.Route{Path: AppUrl + "create/", Handler: lamu.NewDynamicView("proposals.CreateView")}},
+			{Key: "proposals.DetailRoute", Value: lamu.Route{Path: AppUrl + "{id}/", Handler: lamu.NewDynamicView("proposals.DetailView")}},
+			{Key: "proposals.UpdateRoute", Value: lamu.Route{Path: AppUrl + "{id}/edit/", Handler: lamu.NewDynamicView("proposals.UpdateView")}},
+			{Key: "proposals.DeleteRoute", Value: lamu.Route{Path: AppUrl + "{id}/delete/", Handler: lamu.NewDynamicView("proposals.DeleteView")}},
+			{Key: "proposals.GenerateRoute", Value: lamu.Route{Path: AppUrl + "{id}/generate/", Handler: lamu.NewDynamicView("proposals.GenerateView")}},
+			{Key: "proposals.CancelRoute", Value: lamu.Route{Path: AppUrl + "{id}/cancel/", Handler: lamu.NewDynamicView("proposals.CancelView")}},
+			{Key: "proposals.AiEditFormRoute", Value: lamu.Route{Path: AppUrl + "{id}/ai-edit/form/", Handler: lamu.NewDynamicView("proposals.AiEditFormView")}},
+			{Key: "proposals.AiEditRoute", Value: lamu.Route{Path: AppUrl + "{id}/ai-edit/", Handler: lamu.NewDynamicView("proposals.AiEditView")}},
+			{Key: "proposals.ExportPdfRoute", Value: lamu.Route{Path: AppUrl + "{id}/export-pdf/", Handler: lamu.NewDynamicView("proposals.ExportPdfView")}},
+			{Key: "proposals.ExportDocxRoute", Value: lamu.Route{Path: AppUrl + "{id}/export-docx/", Handler: lamu.NewDynamicView("proposals.ExportDocxView")}},
+		},
+	}
 }

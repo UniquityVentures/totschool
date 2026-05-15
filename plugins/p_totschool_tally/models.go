@@ -6,8 +6,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/UniquityVentures/lago/lago"
-	"github.com/UniquityVentures/lago/plugins/p_users"
+	"github.com/UniquityVentures/lamu/lamu"
+	"github.com/UniquityVentures/lamu/plugins/p_users"
 	"gorm.io/gorm"
 )
 
@@ -265,11 +265,6 @@ func GetLeaderboards(db *gorm.DB, userID *uint, session *TotSchoolSession) map[s
 }
 
 func init() {
-	lago.OnDBInit("p_totschool_tally.models", func(d *gorm.DB) *gorm.DB {
-		lago.RegisterModel[TotSchoolSession](d)
-		lago.RegisterModel[Tally](d)
-		return d
-	})
-	lago.RegistryAdmin.Register("p_totschool_tally.TotSchoolSession", lago.AdminPanel[TotSchoolSession]{SearchField: "Name"})
-	lago.RegistryAdmin.Register("p_totschool_tally.Tally", lago.AdminPanel[Tally]{SearchField: "UserID"})
+	lamu.RegistryAdmin.Register("p_totschool_tally.TotSchoolSession", lamu.AdminPanel[TotSchoolSession]{SearchField: "Name"})
+	lamu.RegistryAdmin.Register("p_totschool_tally.Tally", lamu.AdminPanel[Tally]{SearchField: "UserID"})
 }

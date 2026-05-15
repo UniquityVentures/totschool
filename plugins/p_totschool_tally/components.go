@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/UniquityVentures/lago/components"
-	"github.com/UniquityVentures/lago/getters"
-	"github.com/UniquityVentures/lago/lago"
-	"github.com/UniquityVentures/lago/plugins/p_users"
+	"github.com/UniquityVentures/lamu/components"
+	"github.com/UniquityVentures/lamu/getters"
+	"github.com/UniquityVentures/lamu/lamu"
+	"github.com/UniquityVentures/lamu/plugins/p_users"
 
 	. "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
@@ -148,7 +148,7 @@ func TallyDashboardHTML(ctx context.Context, _ Node) Node {
 			)
 		} else {
 			// Daily report not submitted state
-			dailyURL, _ := getters.IfOr(lago.RoutePath("tally.TallyDailyFormRoute", nil), ctx, "")
+			dailyURL, _ := getters.IfOr(lamu.RoutePath("tally.TallyDailyFormRoute", nil), ctx, "")
 
 			whatsappSection = Div(Class("bg-base-200 rounded-box border border-base-300 p-4 mb-4"),
 				Div(Class("flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"),

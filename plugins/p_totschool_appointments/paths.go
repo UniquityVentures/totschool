@@ -1,52 +1,24 @@
 package p_totschool_appointments
 
 import (
-	"github.com/UniquityVentures/lago/lago"
+	"github.com/UniquityVentures/lamu/lamu"
+	"github.com/UniquityVentures/lamu/registry"
 )
 
-func init() {
-	_ = lago.RegistryRoute.Register("appointments.CardTimelineRoute", lago.Route{
-		Path:    AppUrl,
-		Handler: lago.NewDynamicView("appointments.CardTimelineView"),
-	})
-	_ = lago.RegistryRoute.Register("appointments.ListRoute", lago.Route{
-		Path:    AppUrl + "list/",
-		Handler: lago.NewDynamicView("appointments.ListView"),
-	})
-	_ = lago.RegistryRoute.Register("appointments.CreateRoute", lago.Route{
-		Path:    AppUrl + "create/",
-		Handler: lago.NewDynamicView("appointments.CreateView"),
-	})
-	_ = lago.RegistryRoute.Register("appointments.DetailRoute", lago.Route{
-		Path:    AppUrl + "{id}/",
-		Handler: lago.NewDynamicView("appointments.DetailView"),
-	})
-	_ = lago.RegistryRoute.Register("appointments.UpdateRoute", lago.Route{
-		Path:    AppUrl + "{id}/edit/",
-		Handler: lago.NewDynamicView("appointments.UpdateView"),
-	})
-	_ = lago.RegistryRoute.Register("appointments.DeleteRoute", lago.Route{
-		Path:    AppUrl + "{id}/delete/",
-		Handler: lago.NewDynamicView("appointments.DeleteView"),
-	})
-	_ = lago.RegistryRoute.Register("appointments.GenerateRoute", lago.Route{
-		Path:    AppUrl + "{id}/generate/",
-		Handler: lago.NewDynamicView("appointments.GenerateView"),
-	})
-	_ = lago.RegistryRoute.Register("appointments.CancelRoute", lago.Route{
-		Path:    AppUrl + "{id}/cancel/",
-		Handler: lago.NewDynamicView("appointments.CancelView"),
-	})
-	_ = lago.RegistryRoute.Register("appointments.AiEditFormRoute", lago.Route{
-		Path:    AppUrl + "{id}/ai-edit/form/",
-		Handler: lago.NewDynamicView("appointments.AiEditFormView"),
-	})
-	_ = lago.RegistryRoute.Register("appointments.AiEditRoute", lago.Route{
-		Path:    AppUrl + "{id}/ai-edit/",
-		Handler: lago.NewDynamicView("appointments.AiEditView"),
-	})
-	_ = lago.RegistryRoute.Register("appointments.SelectRoute", lago.Route{
-		Path:    AppUrl + "select/",
-		Handler: lago.NewDynamicView("appointments.SelectView"),
-	})
+func pluginRoutes() lamu.PluginFeatures[lamu.Route] {
+	return lamu.PluginFeatures[lamu.Route]{
+		Entries: []registry.Pair[string, lamu.Route]{
+			{Key: "appointments.CardTimelineRoute", Value: lamu.Route{Path: AppUrl, Handler: lamu.NewDynamicView("appointments.CardTimelineView")}},
+			{Key: "appointments.ListRoute", Value: lamu.Route{Path: AppUrl + "list/", Handler: lamu.NewDynamicView("appointments.ListView")}},
+			{Key: "appointments.CreateRoute", Value: lamu.Route{Path: AppUrl + "create/", Handler: lamu.NewDynamicView("appointments.CreateView")}},
+			{Key: "appointments.DetailRoute", Value: lamu.Route{Path: AppUrl + "{id}/", Handler: lamu.NewDynamicView("appointments.DetailView")}},
+			{Key: "appointments.UpdateRoute", Value: lamu.Route{Path: AppUrl + "{id}/edit/", Handler: lamu.NewDynamicView("appointments.UpdateView")}},
+			{Key: "appointments.DeleteRoute", Value: lamu.Route{Path: AppUrl + "{id}/delete/", Handler: lamu.NewDynamicView("appointments.DeleteView")}},
+			{Key: "appointments.GenerateRoute", Value: lamu.Route{Path: AppUrl + "{id}/generate/", Handler: lamu.NewDynamicView("appointments.GenerateView")}},
+			{Key: "appointments.CancelRoute", Value: lamu.Route{Path: AppUrl + "{id}/cancel/", Handler: lamu.NewDynamicView("appointments.CancelView")}},
+			{Key: "appointments.AiEditFormRoute", Value: lamu.Route{Path: AppUrl + "{id}/ai-edit/form/", Handler: lamu.NewDynamicView("appointments.AiEditFormView")}},
+			{Key: "appointments.AiEditRoute", Value: lamu.Route{Path: AppUrl + "{id}/ai-edit/", Handler: lamu.NewDynamicView("appointments.AiEditView")}},
+			{Key: "appointments.SelectRoute", Value: lamu.Route{Path: AppUrl + "select/", Handler: lamu.NewDynamicView("appointments.SelectView")}},
+		},
+	}
 }

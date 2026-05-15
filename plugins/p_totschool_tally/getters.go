@@ -3,8 +3,8 @@ package p_totschool_tally
 import (
 	"context"
 
-	"github.com/UniquityVentures/lago/getters"
-	"github.com/UniquityVentures/lago/registry"
+	"github.com/UniquityVentures/lamu/getters"
+	"github.com/UniquityVentures/lamu/registry"
 	"gorm.io/gorm"
 )
 

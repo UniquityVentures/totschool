@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/UniquityVentures/lago/components"
+	"github.com/UniquityVentures/lamu/components"
 	"google.golang.org/genai"
 	"gorm.io/gorm"
 )

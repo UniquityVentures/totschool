@@ -1,6 +1,3 @@
 package p_totschool_tally
 
-func init() {
-	registerTallyPages()
-	registerTallyUserDetailPatch()
-}
+// Page registration is handled by pluginPages in pages_tally_registry.go (wired from app.go).

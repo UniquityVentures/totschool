@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/UniquityVentures/lago/lago"
-	"github.com/UniquityVentures/lago/plugins/p_users"
-	"github.com/UniquityVentures/lago/registry"
+	"github.com/UniquityVentures/lamu/lamu"
+	"github.com/UniquityVentures/lamu/plugins/p_users"
+	"github.com/UniquityVentures/lamu/registry"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -71,12 +71,5 @@ func (p *Proposal) FormatAnswersForAI() (string, error) {
 }
 
 func init() {
-	lago.OnDBInit("p_totschool_proposals.models", func(d *gorm.DB) *gorm.DB {
-		lago.RegisterModel[Proposal](d)
-		// Mark any stuck generating proposals as not generating on startup
-		d.Model(&Proposal{}).Where("generation_id IS NOT NULL").Update("generation_id", nil)
-		go runWorker(d)
-		return d
-	})
-	lago.RegistryAdmin.Register("p_totschool_proposals", lago.AdminPanel[Proposal]{SearchField: "Title"})
+	lamu.RegistryAdmin.Register("p_totschool_proposals", lamu.AdminPanel[Proposal]{SearchField: "Title"})
 }

@@ -1,8 +1,8 @@
 package p_totschool_tally
 
 import (
-	"github.com/UniquityVentures/lago/components"
-	"github.com/UniquityVentures/lago/getters"
+	"github.com/UniquityVentures/lamu/components"
+	"github.com/UniquityVentures/lamu/getters"
 )
 
 func tallyCommonFields() []components.PageInterface {

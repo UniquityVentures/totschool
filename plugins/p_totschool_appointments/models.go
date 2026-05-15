@@ -4,8 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/UniquityVentures/lago/lago"
-	"github.com/UniquityVentures/lago/plugins/p_users"
+	"github.com/UniquityVentures/lamu/lamu"
+	"github.com/UniquityVentures/lamu/plugins/p_users"
+	"github.com/UniquityVentures/lamu/registry"
 	"gorm.io/gorm"
 )
 
@@ -61,12 +62,21 @@ func WithOverlappingFilterChain(q gorm.ChainInterface[Appointment]) gorm.ChainIn
 	return q.Where(overlappingAppointmentsWhereSQL)
 }
 
+func pluginDBInitHooks() lamu.PluginFeatures[lamu.DBInitHook] {
+	return lamu.PluginFeatures[lamu.DBInitHook]{
+		Entries: []registry.Pair[string, lamu.DBInitHook]{
+			{
+				Key: "p_totschool_appointments.models",
+				Value: func(d *gorm.DB) *gorm.DB {
+					d.Model(&Appointment{}).Where("generation_id IS NOT NULL").Update("generation_id", nil)
+					go runWorker(d)
+					return d
+				},
+			},
+		},
+	}
+}
+
 func init() {
-	lago.OnDBInit("p_totschool_appointments.models", func(d *gorm.DB) *gorm.DB {
-		lago.RegisterModel[Appointment](d)
-		d.Model(&Appointment{}).Where("generation_id IS NOT NULL").Update("generation_id", nil)
-		go runWorker(d)
-		return d
-	})
-	lago.RegistryAdmin.Register("p_totschool_appointments.Appointment", lago.AdminPanel[Appointment]{SearchField: "Name"})
+	lamu.RegistryAdmin.Register("p_totschool_appointments.Appointment", lamu.AdminPanel[Appointment]{SearchField: "Name"})
 }

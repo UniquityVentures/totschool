@@ -3,9 +3,10 @@ package p_totschool_appointments
 import (
 	"time"
 
-	"github.com/UniquityVentures/lago/components"
-	"github.com/UniquityVentures/lago/getters"
-	"github.com/UniquityVentures/lago/lago"
+	"github.com/UniquityVentures/lamu/components"
+	"github.com/UniquityVentures/lamu/getters"
+	"github.com/UniquityVentures/lamu/lamu"
+	"github.com/UniquityVentures/lamu/registry"
 )
 
 func appointmentFormFields() []components.PageInterface {
@@ -51,57 +52,58 @@ func appointmentFormFields() []components.PageInterface {
 	}
 }
 
-func registerForms() {
-	lago.RegistryPage.Register("appointments.AppointmentCreateForm", components.ShellScaffold{
-		Sidebar: []components.PageInterface{lago.DynamicPage{Name: "appointments.AppointmentMenu"}},
-		Children: []components.PageInterface{
-			&components.FormListenBoostedPost{
-				Name:      getters.Static("appointments.AppointmentCreateForm"),
-				ActionURL: lago.RoutePath("appointments.CreateRoute", nil),
-				Children: []components.PageInterface{
-					components.FormComponent[Appointment]{
-						Attr: getters.FormBubbling(getters.Static("appointments.AppointmentCreateForm")),
+func registerForms() []registry.Pair[string, components.PageInterface] {
+	return []registry.Pair[string, components.PageInterface]{
+		{Key: "appointments.AppointmentCreateForm", Value: components.ShellScaffold{
+			Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "appointments.AppointmentMenu"}},
+			Children: []components.PageInterface{
+				&components.FormListenBoostedPost{
+					Name:      getters.Static("appointments.AppointmentCreateForm"),
+					ActionURL: lamu.RoutePath("appointments.CreateRoute", nil),
+					Children: []components.PageInterface{
+						components.FormComponent[Appointment]{
+							Attr: getters.FormBubbling(getters.Static("appointments.AppointmentCreateForm")),
 
-						Title:          "Create Appointment",
-						Subtitle:       "Create a new appointment",
-						ChildrenInput:  appointmentFormFields(),
-						ChildrenAction: []components.PageInterface{components.ButtonSubmit{Label: "Save Appointment"}},
+							Title:          "Create Appointment",
+							Subtitle:       "Create a new appointment",
+							ChildrenInput:  appointmentFormFields(),
+							ChildrenAction: []components.PageInterface{components.ButtonSubmit{Label: "Save Appointment"}},
+						},
 					},
 				},
 			},
-		},
-	})
+		}},
+		{Key: "appointments.AppointmentUpdateForm", Value: components.ShellScaffold{
+			Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "appointments.AppointmentDetailMenu"}},
+			Children: []components.PageInterface{
+				&components.FormListenBoostedPost{
+					Name:      getters.Static("appointments.AppointmentUpdateForm"),
+					ActionURL: lamu.RoutePath("appointments.UpdateRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("appointment.ID"))}),
+					Children: []components.PageInterface{
+						components.FormComponent[Appointment]{
+							Getter: getters.Key[Appointment]("appointment"),
+							Attr:   getters.FormBubbling(getters.Static("appointments.AppointmentUpdateForm")),
 
-	lago.RegistryPage.Register("appointments.AppointmentUpdateForm", components.ShellScaffold{
-		Sidebar: []components.PageInterface{lago.DynamicPage{Name: "appointments.AppointmentDetailMenu"}},
-		Children: []components.PageInterface{
-			&components.FormListenBoostedPost{
-				Name:      getters.Static("appointments.AppointmentUpdateForm"),
-				ActionURL: lago.RoutePath("appointments.UpdateRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("appointment.ID"))}),
-				Children: []components.PageInterface{
-					components.FormComponent[Appointment]{
-						Getter: getters.Key[Appointment]("appointment"),
-						Attr:   getters.FormBubbling(getters.Static("appointments.AppointmentUpdateForm")),
-
-						Title:         "Edit Appointment",
-						Subtitle:      "Update appointment details",
-						ChildrenInput: appointmentFormFields(),
-						ChildrenAction: []components.PageInterface{
-							components.ContainerRow{
-								Classes: "flex flex-wrap justify-between gap-2 mt-2 items-center",
-								Children: []components.PageInterface{
-									components.ContainerRow{
-										Classes: "flex justify-end gap-2",
-										Children: []components.PageInterface{
-											components.ButtonSubmit{Label: "Save Appointment"},
-											components.ButtonModalForm{
-												Label:       "Delete",
-												Icon:        "trash",
-												Name:        getters.Static("appointments.AppointmentDeleteForm"),
-												Url:         lago.RoutePath("appointments.DeleteRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("appointment.ID"))}),
-												FormPostURL: lago.RoutePath("appointments.DeleteRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("appointment.ID"))}),
-												ModalUID:    "appointment-delete-modal",
-												Classes:     "btn-error",
+							Title:         "Edit Appointment",
+							Subtitle:      "Update appointment details",
+							ChildrenInput: appointmentFormFields(),
+							ChildrenAction: []components.PageInterface{
+								components.ContainerRow{
+									Classes: "flex flex-wrap justify-between gap-2 mt-2 items-center",
+									Children: []components.PageInterface{
+										components.ContainerRow{
+											Classes: "flex justify-end gap-2",
+											Children: []components.PageInterface{
+												components.ButtonSubmit{Label: "Save Appointment"},
+												components.ButtonModalForm{
+													Label:       "Delete",
+													Icon:        "trash",
+													Name:        getters.Static("appointments.AppointmentDeleteForm"),
+													Url:         lamu.RoutePath("appointments.DeleteRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("appointment.ID"))}),
+													FormPostURL: lamu.RoutePath("appointments.DeleteRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("appointment.ID"))}),
+													ModalUID:    "appointment-delete-modal",
+													Classes:     "btn-error",
+												},
 											},
 										},
 									},
@@ -111,6 +113,6 @@ func registerForms() {
 					},
 				},
 			},
-		},
-	})
+		}},
+	}
 }

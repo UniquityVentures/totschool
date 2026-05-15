@@ -6,8 +6,9 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/UniquityVentures/lago/lago"
-	"github.com/UniquityVentures/lago/plugins/p_users"
+	"github.com/UniquityVentures/lamu/lamu"
+	"github.com/UniquityVentures/lamu/plugins/p_users"
+	"github.com/UniquityVentures/lamu/registry"
 	"gorm.io/gorm"
 )
 
@@ -98,24 +99,31 @@ func GenerateAppointmentsForUser(db *gorm.DB, user p_users.User, count int) {
 	}
 }
 
-func init() {
-	lago.RegistryGenerator.Register("appointments.Generator", lago.Generator{
-		Create: func(db *gorm.DB) error {
-			users, err := gorm.G[p_users.User](db).Find(context.Background())
-			if err != nil {
-				return err
-			}
+func pluginGenerators() lamu.PluginFeatures[lamu.Generator] {
+	return lamu.PluginFeatures[lamu.Generator]{
+		Entries: []registry.Pair[string, lamu.Generator]{
+			{
+				Key: "appointments.Generator",
+				Value: lamu.Generator{
+					Create: func(db *gorm.DB) error {
+						users, err := gorm.G[p_users.User](db).Find(context.Background())
+						if err != nil {
+							return err
+						}
 
-			// Generate appointments for each user
-			for _, user := range users {
-				// Base number of appointments + some randomness
-				count := 10 + rand.Intn(15)
-				GenerateAppointmentsForUser(db, user, count)
-			}
-			return nil
+						// Generate appointments for each user
+						for _, user := range users {
+							// Base number of appointments + some randomness
+							count := 10 + rand.Intn(15)
+							GenerateAppointmentsForUser(db, user, count)
+						}
+						return nil
+					},
+					Remove: func(db *gorm.DB) error {
+						return db.Unscoped().Where("1=1").Delete(&Appointment{}).Error
+					},
+				},
+			},
 		},
-		Remove: func(db *gorm.DB) error {
-			return db.Unscoped().Where("1=1").Delete(&Appointment{}).Error
-		},
-	})
+	}
 }

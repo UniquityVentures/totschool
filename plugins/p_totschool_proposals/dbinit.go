@@ -1,8 +1,7 @@
-package p_totschool_users
+package p_totschool_proposals
 
 import (
 	"github.com/UniquityVentures/lamu/lamu"
-	"github.com/UniquityVentures/lamu/plugins/p_users"
 	"github.com/UniquityVentures/lamu/registry"
 	"gorm.io/gorm"
 )
@@ -11,10 +10,10 @@ func pluginDBInitHooks() lamu.PluginFeatures[lamu.DBInitHook] {
 	return lamu.PluginFeatures[lamu.DBInitHook]{
 		Entries: []registry.Pair[string, lamu.DBInitHook]{
 			{
-				Key: "p_totschool_users.roles",
+				Key: "p_totschool_proposals.bootstrap",
 				Value: func(d *gorm.DB) *gorm.DB {
-					d.FirstOrCreate(&p_users.Role{}, p_users.Role{Name: "totschool_student"})
-					d.FirstOrCreate(&p_users.Role{}, p_users.Role{Name: "totschool_admin"})
+					d.Model(&Proposal{}).Where("generation_id IS NOT NULL").Update("generation_id", nil)
+					go runWorker(d)
 					return d
 				},
 			},

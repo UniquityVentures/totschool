@@ -1,6 +1,9 @@
 package p_totschool_appointments
 
-import "github.com/UniquityVentures/lago/lago"
+import (
+	"github.com/UniquityVentures/lamu/lamu"
+	"github.com/UniquityVentures/lamu/registry"
+)
 
 type TotscholAppointmentsConfig struct {
 	APIKey string `toml:"apiKey"`
@@ -11,6 +14,10 @@ var totschoolAppointmentConfig = &TotscholAppointmentsConfig{}
 
 func (c *TotscholAppointmentsConfig) PostConfig() {}
 
-func init() {
-	lago.RegistryConfig.Register("p_totschool_appointments", totschoolAppointmentConfig)
+func pluginConfigs() lamu.PluginFeatures[lamu.Config] {
+	return lamu.PluginFeatures[lamu.Config]{
+		Entries: []registry.Pair[string, lamu.Config]{
+			{Key: "p_totschool_appointments", Value: totschoolAppointmentConfig},
+		},
+	}
 }

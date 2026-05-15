@@ -3,50 +3,54 @@ package p_totschool_tally
 import (
 	"time"
 
-	"github.com/UniquityVentures/lago/components"
-	"github.com/UniquityVentures/lago/getters"
-	"github.com/UniquityVentures/lago/lago"
-	"github.com/UniquityVentures/lago/plugins/p_users"
+	"github.com/UniquityVentures/lamu/components"
+	"github.com/UniquityVentures/lamu/getters"
+	"github.com/UniquityVentures/lamu/lamu"
+	"github.com/UniquityVentures/lamu/plugins/p_users"
+	"github.com/UniquityVentures/lamu/registry"
 )
 
-func registerTallyPages() {
-	lago.RegistryPage.Register("tally.TallyMenu", components.SidebarMenu{
+func tallyPageEntries() []registry.Pair[string, components.PageInterface] {
+	entries := []registry.Pair[string, components.PageInterface]{}
+	entries = append(entries, registry.Pair[string, components.PageInterface]{
+		Key: "tally.TallyMenu", Value: components.SidebarMenu{
 		Title: getters.Static("Totschool Tally"),
 		Back: &components.SidebarMenuItem{
 			Title: getters.Static("Back to Home"),
-			Url:   lago.RoutePath("dashboard.AppsPage", nil),
+			Url:   lamu.RoutePath("dashboard.AppsPage", nil),
 		},
 		Children: []components.PageInterface{
 			components.SidebarMenuItem{
 				Title: getters.Static("Dashboard"),
-				Url:   lago.RoutePath("tally.TallyDashboardRoute", nil),
+				Url:   lamu.RoutePath("tally.TallyDashboardRoute", nil),
 				Icon:  "home",
 			},
 			components.SidebarMenuItem{
 				Title: getters.Static("Leaderboard"),
-				Url:   lago.RoutePath("tally.TallyLeaderboardRoute", nil),
+				Url:   lamu.RoutePath("tally.TallyLeaderboardRoute", nil),
 				Icon:  "trophy",
 			},
 			components.SidebarMenuItem{
 				Title: getters.Static("List"),
-				Url:   lago.RoutePath("tally.TallyListRoute", nil),
+				Url:   lamu.RoutePath("tally.TallyListRoute", nil),
 				Icon:  "list-bullet",
 			},
 			components.SidebarMenuItem{
 				Title: getters.Static("Fill Daily Report"),
-				Url:   lago.RoutePath("tally.TallyDailyFormRoute", nil),
+				Url:   lamu.RoutePath("tally.TallyDailyFormRoute", nil),
 				Icon:  "pencil-square",
 			},
 			components.SidebarMenuItem{
 				Page:  components.Page{Roles: []string{"totschool_admin", "superuser"}},
 				Title: getters.Static("Create Tally (Admin)"),
-				Url:   lago.RoutePath("tally.TallyCreateRoute", nil),
+				Url:   lamu.RoutePath("tally.TallyCreateRoute", nil),
 				Icon:  "plus",
 			},
 		},
-	})
+	}})
 
-	lago.RegistryPage.Register("tally.TallyDetailMenu", components.SidebarMenu{
+	entries = append(entries, registry.Pair[string, components.PageInterface]{
+		Key: "tally.TallyDetailMenu", Value: components.SidebarMenu{
 		Title: getters.Static("Tally Details"),
 		Back: &components.SidebarMenuItem{
 			// Show the user's name and the tally date (date only), using a
@@ -56,27 +60,28 @@ func registerTallyPages() {
 				getters.Any(getters.Key[string]("Tally.User.Name")),
 				getters.Any(getters.TimeFormat("2006-01-02", getters.Key[time.Time]("Tally.Date"))),
 			),
-			Url: lago.RoutePath("tally.TallyListRoute", nil),
+			Url: lamu.RoutePath("tally.TallyListRoute", nil),
 		},
 		Children: []components.PageInterface{
 			components.SidebarMenuItem{
 				Title: getters.Static("Details"),
-				Url:   lago.RoutePath("tally.TallyDetailRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("Tally.ID"))}),
+				Url:   lamu.RoutePath("tally.TallyDetailRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("Tally.ID"))}),
 			},
 			components.SidebarMenuItem{
 				Title: getters.Static("Edit"),
-				Url:   lago.RoutePath("tally.TallyUpdateRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("Tally.ID"))}),
+				Url:   lamu.RoutePath("tally.TallyUpdateRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("Tally.ID"))}),
 			},
 		},
-	})
+	}})
 
 	// Daily Create Form
-	lago.RegistryPage.Register("tally.TallyDailyForm", components.ShellScaffold{
-		Sidebar: []components.PageInterface{lago.DynamicPage{Name: "tally.TallyMenu"}},
+	entries = append(entries, registry.Pair[string, components.PageInterface]{
+		Key: "tally.TallyDailyForm", Value: components.ShellScaffold{
+		Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "tally.TallyMenu"}},
 		Children: []components.PageInterface{
 			&components.FormListenBoostedPost{
 				Name:      getters.Static("tally.TallyDailyForm"),
-				ActionURL: lago.RoutePath("tally.TallyDailyFormRoute", nil),
+				ActionURL: lamu.RoutePath("tally.TallyDailyFormRoute", nil),
 				Children: []components.PageInterface{
 					components.FormComponent[Tally]{
 						Attr: getters.FormBubbling(getters.Static("tally.TallyDailyForm")),
@@ -91,7 +96,7 @@ func registerTallyPages() {
 				},
 			},
 		},
-	})
+	}})
 
 	// Create Form (Admin)
 	createAdminFields := append([]components.PageInterface{
@@ -99,7 +104,7 @@ func registerTallyPages() {
 			Page:        components.Page{Roles: []string{"totschool_admin", "superuser"}},
 			Name:        "UserID",
 			Label:       "User",
-			Url:         lago.RoutePath("users.SelectRoute", nil),
+			Url:         lamu.RoutePath("p_users.SelectRoute", nil),
 			Display:     getters.Key[string]("$in.Name"),
 			Placeholder: "Select a user...",
 			Required:    true,
@@ -114,12 +119,13 @@ func registerTallyPages() {
 		},
 	}, tallyCommonFields()...)
 
-	lago.RegistryPage.Register("tally.TallyCreateForm", components.ShellScaffold{
-		Sidebar: []components.PageInterface{lago.DynamicPage{Name: "tally.TallyMenu"}},
+	entries = append(entries, registry.Pair[string, components.PageInterface]{
+		Key: "tally.TallyCreateForm", Value: components.ShellScaffold{
+		Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "tally.TallyMenu"}},
 		Children: []components.PageInterface{
 			&components.FormListenBoostedPost{
 				Name:      getters.Static("tally.TallyCreateForm"),
-				ActionURL: lago.RoutePath("tally.TallyCreateRoute", nil),
+				ActionURL: lamu.RoutePath("tally.TallyCreateRoute", nil),
 				Children: []components.PageInterface{
 					components.FormComponent[Tally]{
 						Attr: getters.FormBubbling(getters.Static("tally.TallyCreateForm")),
@@ -134,15 +140,16 @@ func registerTallyPages() {
 				},
 			},
 		},
-	})
+	}})
 
 	// Update Form (Admin)
-	lago.RegistryPage.Register("tally.TallyUpdateForm", components.ShellScaffold{
-		Sidebar: []components.PageInterface{lago.DynamicPage{Name: "tally.TallyDetailMenu"}},
+	entries = append(entries, registry.Pair[string, components.PageInterface]{
+		Key: "tally.TallyUpdateForm", Value: components.ShellScaffold{
+		Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "tally.TallyDetailMenu"}},
 		Children: []components.PageInterface{
 			&components.FormListenBoostedPost{
 				Name:      getters.Static("tally.TallyUpdateForm"),
-				ActionURL: lago.RoutePath("tally.TallyUpdateRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("Tally.ID"))}),
+				ActionURL: lamu.RoutePath("tally.TallyUpdateRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("Tally.ID"))}),
 				Children: []components.PageInterface{
 					components.FormComponent[Tally]{
 						Attr: getters.FormBubbling(getters.Static("tally.TallyUpdateForm")),
@@ -163,8 +170,8 @@ func registerTallyPages() {
 												Label:       "Delete",
 												Icon:        "trash",
 												Name:        getters.Static("tally.TallyDeleteForm"),
-												Url:         lago.RoutePath("tally.TallyDeleteRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("Tally.ID"))}),
-												FormPostURL: lago.RoutePath("tally.TallyDeleteRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("Tally.ID"))}),
+												Url:         lamu.RoutePath("tally.TallyDeleteRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("Tally.ID"))}),
+												FormPostURL: lamu.RoutePath("tally.TallyDeleteRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("Tally.ID"))}),
 												ModalUID:    "tally-delete-modal",
 												Classes:     "btn-error",
 											},
@@ -177,10 +184,11 @@ func registerTallyPages() {
 				},
 			},
 		},
-	})
+	}})
 
 	// Delete Form
-	lago.RegistryPage.Register("tally.TallyDeleteForm", components.Modal{
+	entries = append(entries, registry.Pair[string, components.PageInterface]{
+		Key: "tally.TallyDeleteForm", Value: components.Modal{
 		UID: "tally-delete-modal",
 		Children: []components.PageInterface{
 			components.DeleteConfirmation{
@@ -189,11 +197,12 @@ func registerTallyPages() {
 				Attr:    getters.FormBubbling(getters.Key[string]("$get.name")),
 			},
 		},
-	})
+	}})
 
 	// Tally Detail View
-	lago.RegistryPage.Register("tally.TallyDetail", components.ShellScaffold{
-		Sidebar: []components.PageInterface{lago.DynamicPage{Name: "tally.TallyDetailMenu"}},
+	entries = append(entries, registry.Pair[string, components.PageInterface]{
+		Key: "tally.TallyDetail", Value: components.ShellScaffold{
+		Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "tally.TallyDetailMenu"}},
 		Children: []components.PageInterface{
 			components.ContainerColumn{
 				Classes: "p-4",
@@ -317,11 +326,11 @@ func registerTallyPages() {
 				},
 			},
 		},
-	})
+	}})
 
 	// Tally Filter
 	tallyFilter := components.FormComponent[Tally]{
-		Attr: getters.FormBoostedGet(lago.RoutePath("tally.TallyListRoute", nil)),
+		Attr: getters.FormBoostedGet(lamu.RoutePath("tally.TallyListRoute", nil)),
 
 		ChildrenInput: []components.PageInterface{
 			components.InputForeignKey[uint]{
@@ -329,7 +338,7 @@ func registerTallyPages() {
 
 				Name:    "UserID",
 				Label:   "User ID",
-				Url:     lago.RoutePath("users.SelectRoute", nil),
+				Url:     lamu.RoutePath("p_users.SelectRoute", nil),
 				Getter:  getters.Key[uint]("$get.UserID"),
 				Display: getters.Key[string]("$in.Name"),
 			},
@@ -350,8 +359,9 @@ func registerTallyPages() {
 	}
 
 	// Tally Table
-	lago.RegistryPage.Register("tally.TallyTable", components.ShellScaffold{
-		Sidebar: []components.PageInterface{lago.DynamicPage{Name: "tally.TallyMenu"}},
+	entries = append(entries, registry.Pair[string, components.PageInterface]{
+		Key: "tally.TallyTable", Value: components.ShellScaffold{
+		Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "tally.TallyMenu"}},
 		Children: []components.PageInterface{
 			sessionEnvironment,
 			components.DataTable[Tally]{
@@ -419,26 +429,39 @@ func registerTallyPages() {
 				RowAttr: getters.RowAttrNavigateFormat("/tally/%v/", getters.Any(getters.Key[uint]("$row.ID"))),
 			},
 		},
-	})
+	}})
 
 	// Dashboard and Leaderboard rendering in pages requires a custom component or HTML container.
-	lago.RegistryPage.Register("tally.TallyDashboard", components.ShellScaffold{
-		Sidebar: []components.PageInterface{lago.DynamicPage{Name: "tally.TallyMenu"}},
+	entries = append(entries, registry.Pair[string, components.PageInterface]{
+		Key: "tally.TallyDashboard", Value: components.ShellScaffold{
+		Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "tally.TallyMenu"}},
 		Children: []components.PageInterface{
 			sessionEnvironment,
 			components.ContainerHTML{
 				HTML: TallyDashboardHTML,
 			},
 		},
-	})
+	}})
 
-	lago.RegistryPage.Register("tally.TallyLeaderboard", components.ShellScaffold{
-		Sidebar: []components.PageInterface{lago.DynamicPage{Name: "tally.TallyMenu"}},
+	entries = append(entries, registry.Pair[string, components.PageInterface]{
+		Key: "tally.TallyLeaderboard", Value: components.ShellScaffold{
+		Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "tally.TallyMenu"}},
 		Children: []components.PageInterface{
 			sessionEnvironment,
 			components.ContainerHTML{
 				HTML: TallyLeaderboardHTML,
 			},
 		},
-	})
+	}})
+	return entries
+}
+
+func pluginPages() lamu.PluginFeatures[components.PageInterface] {
+	entries := tallyPageEntries()
+	return lamu.PluginFeatures[components.PageInterface]{
+		Entries: entries,
+		Patches: []registry.Pair[string, func(components.PageInterface) components.PageInterface]{
+			{Key: "p_users.UserDetail", Value: patchUserDetailForTally},
+		},
+	}
 }

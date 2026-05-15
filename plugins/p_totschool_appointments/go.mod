@@ -1,6 +1,8 @@
-module github.com/UniquityVentures/totschool_lago/plugins/p_totschool_appointments
+module github.com/UniquityVentures/totschool/plugins/p_totschool_appointments
 
 go 1.26.1
+
+require github.com/UniquityVentures/lamu v0.4.7
 
 require (
 	cloud.google.com/go v0.116.0 // indirect
@@ -36,3 +38,5 @@ require (
 	gorm.io/gorm v1.31.1 // indirect
 	maragu.dev/gomponents v1.3.0 // indirect
 )
+
+replace github.com/UniquityVentures/lamu => ../../../../lamu

@@ -10,10 +10,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/UniquityVentures/lago/getters"
-	"github.com/UniquityVentures/lago/lago"
-	"github.com/UniquityVentures/lago/plugins/p_users"
-	"github.com/UniquityVentures/lago/views"
+	"github.com/UniquityVentures/lamu/getters"
+	"github.com/UniquityVentures/lamu/lamu"
+	"github.com/UniquityVentures/lamu/plugins/p_users"
+	"github.com/UniquityVentures/lamu/registry"
+	"github.com/UniquityVentures/lamu/views"
 	"github.com/alnah/go-md2pdf"
 	"gorm.io/gorm"
 )
@@ -75,7 +76,7 @@ func (proposalFormPatcher) Patch(_ views.View, r *http.Request, formData map[str
 }
 
 func redirectProposalDetail(w http.ResponseWriter, r *http.Request, idStr string) bool {
-	url, err := getters.IfOr(lago.RoutePath("proposals.DetailRoute", map[string]getters.Getter[any]{
+	url, err := getters.IfOr(lamu.RoutePath("proposals.DetailRoute", map[string]getters.Getter[any]{
 		"id": getters.Any(getters.Static(idStr)),
 	}), r.Context(), "")
 	if err != nil || url == "" {
@@ -506,112 +507,95 @@ func exportPdfHandler(v *views.View) http.Handler {
 	})
 }
 
-func init() {
-	lago.RegistryView.Register("proposals.ListView",
-		lago.GetPageView("proposals.ProposalTable").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("proposals.list", views.LayerList[Proposal]{
-				Key: getters.Static("proposals"),
-				QueryPatchers: views.QueryPatchers[Proposal]{
-					{Key: "proposals.query", Value: proposalQueryPatcher{}},
-				},
-			}))
-
-	lago.RegistryView.Register("proposals.DetailView",
-		lago.GetPageView("proposals.ProposalDetail").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("proposals.detail", views.LayerDetail[Proposal]{
-				Key:          getters.Static("proposal"),
-				PathParamKey: getters.Static("id"),
-			}).
-			WithLayer("proposals.detail_ctx", proposalDetailCtxLayer{}))
-
-	lago.RegistryView.Register("proposals.CreateView",
-		lago.GetPageView("proposals.ProposalCreateForm").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("proposals.create", views.LayerCreate[Proposal]{
-				SuccessURL: lago.RoutePath("proposals.DetailRoute", map[string]getters.Getter[any]{
-					"id": getters.Any(getters.Key[uint]("$id")),
-				}),
-				FormPatchers: views.FormPatchers{
-					{Key: "proposals.form", Value: proposalFormPatcher{}},
-				},
-			}))
-
-	lago.RegistryView.Register("proposals.UpdateView",
-		lago.GetPageView("proposals.ProposalUpdateForm").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("proposals.detail", views.LayerDetail[Proposal]{
-				Key:          getters.Static("proposal"),
-				PathParamKey: getters.Static("id"),
-			}).
-			WithLayer("proposals.update", views.LayerUpdate[Proposal]{
-				Key: getters.Static("proposal"),
-				SuccessURL: lago.RoutePath("proposals.DetailRoute", map[string]getters.Getter[any]{
-					"id": getters.Any(getters.Key[uint]("proposal.ID")),
-				}),
-				FormPatchers: views.FormPatchers{
-					{Key: "proposals.form", Value: proposalFormPatcher{}},
-				},
-			}))
-
-	lago.RegistryView.Register("proposals.DeleteView",
-		lago.GetPageView("proposals.ProposalDeleteForm").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("proposals.detail", views.LayerDetail[Proposal]{
-				Key:          getters.Static("proposal"),
-				PathParamKey: getters.Static("id"),
-			}).
-			WithLayer("proposals.delete", views.LayerDelete[Proposal]{
-				Key:        getters.Static("proposal"),
-				SuccessURL: lago.RoutePath("proposals.ListRoute", nil),
-			}))
-
-	lago.RegistryView.Register("proposals.GenerateView",
-		lago.GetPageView("proposals.ProposalDetail").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("proposals.generate", views.MethodLayer{
-				Method:  http.MethodPost,
-				Handler: generateHandler,
-			}))
-
-	lago.RegistryView.Register("proposals.CancelView",
-		lago.GetPageView("proposals.ProposalDetail").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("proposals.cancel", views.MethodLayer{
-				Method:  http.MethodPost,
-				Handler: cancelHandler,
-			}))
-
-	lago.RegistryView.Register("proposals.AiEditFormView",
-		lago.GetPageView("proposals.AiEditModal").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("proposals.ai_edit_form", views.MethodLayer{
-				Method:  http.MethodGet,
-				Handler: aiEditFormHandler,
-			}))
-
-	lago.RegistryView.Register("proposals.AiEditView",
-		lago.GetPageView("proposals.AiEditModal").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("proposals.ai_edit", views.MethodLayer{
-				Method:  http.MethodPost,
-				Handler: aiEditHandler,
-			}))
-
-	lago.RegistryView.Register("proposals.ExportPdfView",
-		lago.GetPageView("proposals.ProposalDetail").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("proposals.export_pdf", views.MethodLayer{
-				Method:  http.MethodGet,
-				Handler: exportPdfHandler,
-			}))
-
-	lago.RegistryView.Register("proposals.ExportDocxView",
-		lago.GetPageView("proposals.ProposalDetail").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("proposals.export_docx", views.MethodLayer{
-				Method:  http.MethodGet,
-				Handler: exportDocxHandler,
-			}))
+func pluginViews() lamu.PluginFeatures[*views.View] {
+	return lamu.PluginFeatures[*views.View]{
+		Entries: []registry.Pair[string, *views.View]{
+			{Key: "proposals.ListView", Value: lamu.GetPageView("proposals.ProposalTable").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("proposals.list", views.LayerList[Proposal]{
+					Key: getters.Static("proposals"),
+					QueryPatchers: views.QueryPatchers[Proposal]{
+						{Key: "proposals.query", Value: proposalQueryPatcher{}},
+					},
+				})},
+			{Key: "proposals.DetailView", Value: lamu.GetPageView("proposals.ProposalDetail").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("proposals.detail", views.LayerDetail[Proposal]{
+					Key:          getters.Static("proposal"),
+					PathParamKey: getters.Static("id"),
+				}).
+				WithLayer("proposals.detail_ctx", proposalDetailCtxLayer{})},
+			{Key: "proposals.CreateView", Value: lamu.GetPageView("proposals.ProposalCreateForm").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("proposals.create", views.LayerCreate[Proposal]{
+					SuccessURL: lamu.RoutePath("proposals.DetailRoute", map[string]getters.Getter[any]{
+						"id": getters.Any(getters.Key[uint]("$id")),
+					}),
+					FormPatchers: views.FormPatchers{
+						{Key: "proposals.form", Value: proposalFormPatcher{}},
+					},
+				})},
+			{Key: "proposals.UpdateView", Value: lamu.GetPageView("proposals.ProposalUpdateForm").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("proposals.detail", views.LayerDetail[Proposal]{
+					Key:          getters.Static("proposal"),
+					PathParamKey: getters.Static("id"),
+				}).
+				WithLayer("proposals.update", views.LayerUpdate[Proposal]{
+					Key: getters.Static("proposal"),
+					SuccessURL: lamu.RoutePath("proposals.DetailRoute", map[string]getters.Getter[any]{
+						"id": getters.Any(getters.Key[uint]("proposal.ID")),
+					}),
+					FormPatchers: views.FormPatchers{
+						{Key: "proposals.form", Value: proposalFormPatcher{}},
+					},
+				})},
+			{Key: "proposals.DeleteView", Value: lamu.GetPageView("proposals.ProposalDeleteForm").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("proposals.detail", views.LayerDetail[Proposal]{
+					Key:          getters.Static("proposal"),
+					PathParamKey: getters.Static("id"),
+				}).
+				WithLayer("proposals.delete", views.LayerDelete[Proposal]{
+					Key:        getters.Static("proposal"),
+					SuccessURL: lamu.RoutePath("proposals.ListRoute", nil),
+				})},
+			{Key: "proposals.GenerateView", Value: lamu.GetPageView("proposals.ProposalDetail").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("proposals.generate", views.MethodLayer{
+					Method:  http.MethodPost,
+					Handler: generateHandler,
+				})},
+			{Key: "proposals.CancelView", Value: lamu.GetPageView("proposals.ProposalDetail").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("proposals.cancel", views.MethodLayer{
+					Method:  http.MethodPost,
+					Handler: cancelHandler,
+				})},
+			{Key: "proposals.AiEditFormView", Value: lamu.GetPageView("proposals.AiEditModal").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("proposals.ai_edit_form", views.MethodLayer{
+					Method:  http.MethodGet,
+					Handler: aiEditFormHandler,
+				})},
+			{Key: "proposals.AiEditView", Value: lamu.GetPageView("proposals.AiEditModal").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("proposals.ai_edit", views.MethodLayer{
+					Method:  http.MethodPost,
+					Handler: aiEditHandler,
+				})},
+			{Key: "proposals.ExportPdfView", Value: lamu.GetPageView("proposals.ProposalDetail").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("proposals.export_pdf", views.MethodLayer{
+					Method:  http.MethodGet,
+					Handler: exportPdfHandler,
+				})},
+			{Key: "proposals.ExportDocxView", Value: lamu.GetPageView("proposals.ProposalDetail").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("proposals.export_docx", views.MethodLayer{
+					Method:  http.MethodGet,
+					Handler: exportDocxHandler,
+				})},
+		},
+	}
 }

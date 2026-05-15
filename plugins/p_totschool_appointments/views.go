@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/UniquityVentures/lago/getters"
-	"github.com/UniquityVentures/lago/lago"
-	"github.com/UniquityVentures/lago/plugins/p_users"
-	"github.com/UniquityVentures/lago/views"
+	"github.com/UniquityVentures/lamu/getters"
+	"github.com/UniquityVentures/lamu/lamu"
+	"github.com/UniquityVentures/lamu/plugins/p_users"
+	"github.com/UniquityVentures/lamu/registry"
+	"github.com/UniquityVentures/lamu/views"
 	"gorm.io/gorm"
 )
 
@@ -61,7 +62,7 @@ func (AppointmentDetailCtxLayer) Next(_ views.View, next http.Handler) http.Hand
 }
 
 func redirectAppointmentDetail(w http.ResponseWriter, r *http.Request, idStr string) bool {
-	url, err := getters.IfOr(lago.RoutePath("appointments.DetailRoute", map[string]getters.Getter[any]{
+	url, err := getters.IfOr(lamu.RoutePath("appointments.DetailRoute", map[string]getters.Getter[any]{
 		"id": getters.Any(getters.Static(idStr)),
 	}), r.Context(), "")
 	if err != nil || url == "" {
@@ -256,115 +257,130 @@ func applyDateFilterChain(raw any, query gorm.ChainInterface[Appointment]) gorm.
 	return query
 }
 
-func init() {
-	lago.RegistryView.Register("appointments.ListView",
-		lago.GetPageView("appointments.AppointmentTable").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("appointments.list", views.LayerList[Appointment]{
-				Key: getters.Static("appointments"),
-				QueryPatchers: views.QueryPatchers[Appointment]{
-					{Key: "appointments.list", Value: appointmentListQueryPatcher{}},
-				},
-			}))
-
-	lago.RegistryView.Register("appointments.DetailView",
-		lago.GetPageView("appointments.AppointmentDetail").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("appointments.detail", views.LayerDetail[Appointment]{
-				Key:          getters.Static("appointment"),
-				PathParamKey: getters.Static("id"),
-			}).
-			WithLayer("appointments.detail_ctx", AppointmentDetailCtxLayer{}),
-	)
-
-	lago.RegistryView.Register("appointments.CreateView",
-		lago.GetPageView("appointments.AppointmentCreateForm").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("appointments.create", views.LayerCreate[Appointment]{
-				SuccessURL: lago.RoutePath("appointments.DetailRoute", map[string]getters.Getter[any]{
-					"id": getters.Any(getters.Key[uint]("$id")),
-				}),
-				FormPatchers: views.FormPatchers{
-					{Key: "appointments.form", Value: appointmentFormCreatedByPatcher{}},
-				},
-			}))
-
-	lago.RegistryView.Register("appointments.UpdateView",
-		lago.GetPageView("appointments.AppointmentUpdateForm").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("appointments.detail", views.LayerDetail[Appointment]{
-				Key:          getters.Static("appointment"),
-				PathParamKey: getters.Static("id"),
-			}).
-			WithLayer("appointments.update", views.LayerUpdate[Appointment]{
-				Key: getters.Static("appointment"),
-				SuccessURL: lago.RoutePath("appointments.DetailRoute", map[string]getters.Getter[any]{
-					"id": getters.Any(getters.Key[uint]("appointment.ID")),
-				}),
-				FormPatchers: views.FormPatchers{
-					{Key: "appointments.form", Value: appointmentFormCreatedByPatcher{}},
-				},
-			}))
-
-	lago.RegistryView.Register("appointments.DeleteView",
-		lago.GetPageView("appointments.AppointmentDeleteForm").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("appointments.detail", views.LayerDetail[Appointment]{
-				Key:          getters.Static("appointment"),
-				PathParamKey: getters.Static("id"),
-			}).
-			WithLayer("appointments.delete", views.LayerDelete[Appointment]{
-				Key:        getters.Static("appointment"),
-				SuccessURL: lago.RoutePath("appointments.ListRoute", nil),
-			}))
-
-	lago.RegistryView.Register("appointments.GenerateView",
-		lago.GetPageView("appointments.AppointmentDetail").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("appointments.generate", views.MethodLayer{
-				Method:  http.MethodPost,
-				Handler: generateHandler,
-			}))
-
-	lago.RegistryView.Register("appointments.CancelView",
-		lago.GetPageView("appointments.AppointmentDetail").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("appointments.cancel", views.MethodLayer{
-				Method:  http.MethodPost,
-				Handler: cancelHandler,
-			}))
-
-	lago.RegistryView.Register("appointments.AiEditFormView",
-		lago.GetPageView("appointments.AiEditModal").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("appointments.ai_edit_form", views.MethodLayer{
-				Method:  http.MethodGet,
-				Handler: aiEditFormHandler,
-			}))
-
-	lago.RegistryView.Register("appointments.AiEditView",
-		lago.GetPageView("appointments.AiEditModal").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("appointments.ai_edit", views.MethodLayer{
-				Method:  http.MethodPost,
-				Handler: aiEditHandler,
-			}))
-
-	lago.RegistryView.Register("appointments.SelectView",
-		lago.GetPageView("appointments.AppointmentSelectionTable").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("appointments.select_list", views.LayerList[Appointment]{
-				Key: getters.Static("appointments"),
-			}))
-
-	lago.RegistryView.Register("appointments.CardTimelineView",
-		lago.GetPageView("appointments.AppointmentCardTimeline").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("appointments.timeline", views.LayerList[Appointment]{
-				Key: getters.Static("appointments"),
-				QueryPatchers: views.QueryPatchers[Appointment]{
-					{Key: "appointments.timeline", Value: appointmentTimelineQueryPatcher{}},
-					{Key: "appointments.timeline_order", Value: views.QueryPatcherOrderBy[Appointment]{Order: "datetime ASC"}},
-				},
-			}))
+func pluginViews() lamu.PluginFeatures[*views.View] {
+	return lamu.PluginFeatures[*views.View]{
+		Entries: []registry.Pair[string, *views.View]{
+			{
+				Key: "appointments.ListView",
+				Value: lamu.GetPageView("appointments.AppointmentTable").
+					WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+					WithLayer("appointments.list", views.LayerList[Appointment]{
+						Key: getters.Static("appointments"),
+						QueryPatchers: views.QueryPatchers[Appointment]{
+							{Key: "appointments.list", Value: appointmentListQueryPatcher{}},
+						},
+					}),
+			},
+			{
+				Key: "appointments.DetailView",
+				Value: lamu.GetPageView("appointments.AppointmentDetail").
+					WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+					WithLayer("appointments.detail", views.LayerDetail[Appointment]{
+						Key:          getters.Static("appointment"),
+						PathParamKey: getters.Static("id"),
+					}).
+					WithLayer("appointments.detail_ctx", AppointmentDetailCtxLayer{}),
+			},
+			{
+				Key: "appointments.CreateView",
+				Value: lamu.GetPageView("appointments.AppointmentCreateForm").
+					WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+					WithLayer("appointments.create", views.LayerCreate[Appointment]{
+						SuccessURL: lamu.RoutePath("appointments.DetailRoute", map[string]getters.Getter[any]{
+							"id": getters.Any(getters.Key[uint]("$id")),
+						}),
+						FormPatchers: views.FormPatchers{
+							{Key: "appointments.form", Value: appointmentFormCreatedByPatcher{}},
+						},
+					}),
+			},
+			{
+				Key: "appointments.UpdateView",
+				Value: lamu.GetPageView("appointments.AppointmentUpdateForm").
+					WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+					WithLayer("appointments.detail", views.LayerDetail[Appointment]{
+						Key:          getters.Static("appointment"),
+						PathParamKey: getters.Static("id"),
+					}).
+					WithLayer("appointments.update", views.LayerUpdate[Appointment]{
+						Key: getters.Static("appointment"),
+						SuccessURL: lamu.RoutePath("appointments.DetailRoute", map[string]getters.Getter[any]{
+							"id": getters.Any(getters.Key[uint]("appointment.ID")),
+						}),
+						FormPatchers: views.FormPatchers{
+							{Key: "appointments.form", Value: appointmentFormCreatedByPatcher{}},
+						},
+					}),
+			},
+			{
+				Key: "appointments.DeleteView",
+				Value: lamu.GetPageView("appointments.AppointmentDeleteForm").
+					WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+					WithLayer("appointments.detail", views.LayerDetail[Appointment]{
+						Key:          getters.Static("appointment"),
+						PathParamKey: getters.Static("id"),
+					}).
+					WithLayer("appointments.delete", views.LayerDelete[Appointment]{
+						Key:        getters.Static("appointment"),
+						SuccessURL: lamu.RoutePath("appointments.ListRoute", nil),
+					}),
+			},
+			{
+				Key: "appointments.GenerateView",
+				Value: lamu.GetPageView("appointments.AppointmentDetail").
+					WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+					WithLayer("appointments.generate", views.MethodLayer{
+						Method:  http.MethodPost,
+						Handler: generateHandler,
+					}),
+			},
+			{
+				Key: "appointments.CancelView",
+				Value: lamu.GetPageView("appointments.AppointmentDetail").
+					WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+					WithLayer("appointments.cancel", views.MethodLayer{
+						Method:  http.MethodPost,
+						Handler: cancelHandler,
+					}),
+			},
+			{
+				Key: "appointments.AiEditFormView",
+				Value: lamu.GetPageView("appointments.AiEditModal").
+					WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+					WithLayer("appointments.ai_edit_form", views.MethodLayer{
+						Method:  http.MethodGet,
+						Handler: aiEditFormHandler,
+					}),
+			},
+			{
+				Key: "appointments.AiEditView",
+				Value: lamu.GetPageView("appointments.AiEditModal").
+					WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+					WithLayer("appointments.ai_edit", views.MethodLayer{
+						Method:  http.MethodPost,
+						Handler: aiEditHandler,
+					}),
+			},
+			{
+				Key: "appointments.SelectView",
+				Value: lamu.GetPageView("appointments.AppointmentSelectionTable").
+					WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+					WithLayer("appointments.select_list", views.LayerList[Appointment]{
+						Key: getters.Static("appointments"),
+					}),
+			},
+			{
+				Key: "appointments.CardTimelineView",
+				Value: lamu.GetPageView("appointments.AppointmentCardTimeline").
+					WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+					WithLayer("appointments.timeline", views.LayerList[Appointment]{
+						Key: getters.Static("appointments"),
+						QueryPatchers: views.QueryPatchers[Appointment]{
+							{Key: "appointments.timeline", Value: appointmentTimelineQueryPatcher{}},
+							{Key: "appointments.timeline_order", Value: views.QueryPatcherOrderBy[Appointment]{Order: "datetime ASC"}},
+						},
+					}),
+			},
+		},
+	}
 }

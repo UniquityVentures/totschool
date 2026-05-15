@@ -8,10 +8,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/UniquityVentures/lago/getters"
-	"github.com/UniquityVentures/lago/lago"
-	"github.com/UniquityVentures/lago/plugins/p_users"
-	"github.com/UniquityVentures/lago/views"
+	"github.com/UniquityVentures/lamu/getters"
+	"github.com/UniquityVentures/lamu/lamu"
+	"github.com/UniquityVentures/lamu/plugins/p_users"
+	"github.com/UniquityVentures/lamu/registry"
+	"github.com/UniquityVentures/lamu/views"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -295,87 +296,76 @@ func TallyDailyFormHandler(v *views.View) http.Handler {
 	})
 }
 
-func init() {
-	lago.RegistryView.Register("tally.TallyDashboardView",
-		lago.GetPageView("tally.TallyDashboard").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("tally.dashboard", views.MethodLayer{
-				Method:  http.MethodGet,
-				Handler: TallyDashboardHandler,
-			}))
-
-	lago.RegistryView.Register("tally.TallyLeaderboardView",
-		lago.GetPageView("tally.TallyLeaderboard").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("tally.leaderboard", views.MethodLayer{
-				Method:  http.MethodGet,
-				Handler: TallyLeaderboardHandler,
-			}))
-
-	lago.RegistryView.Register("tally.TallyListView",
-		lago.GetPageView("tally.TallyTable").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("tally.list", views.LayerList[Tally]{
-				Key: getters.Static("Tallies"),
-				QueryPatchers: views.QueryPatchers[Tally]{
-					{Key: "tally.list", Value: TallyListQueryPatcher},
-				},
-			}))
-
-	lago.RegistryView.Register("tally.TallyDailyFormView",
-		lago.GetPageView("tally.TallyDailyForm").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("tally.daily_form_get", views.MethodLayer{
-				Method:  http.MethodGet,
-				Handler: TallyDailyFormHandler,
-			}).
-			WithLayer("tally.daily_form_post", views.MethodLayer{
-				Method:  http.MethodPost,
-				Handler: TallyDailyFormHandler,
-			}))
-
-	lago.RegistryView.Register("tally.TallyCreateView",
-		lago.GetPageView("tally.TallyCreateForm").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("tally.admin", requireAdminLayer{}).
-			WithLayer("tally.create", views.LayerCreate[Tally]{
-				SuccessURL: lago.RoutePath("tally.TallyListRoute", nil),
-			}))
-
-	lago.RegistryView.Register("tally.TallyUpdateView",
-		lago.GetPageView("tally.TallyUpdateForm").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("tally.admin", requireAdminLayer{}).
-			WithLayer("tally.detail", views.LayerDetail[Tally]{
-				Key:          getters.Static("Tally"),
-				PathParamKey: getters.Static("id"),
-			}).
-			WithLayer("tally.update", views.LayerUpdate[Tally]{
-				Key:        getters.Static("Tally"),
-				SuccessURL: lago.RoutePath("tally.TallyListRoute", nil),
-			}))
-
-	lago.RegistryView.Register("tally.TallyDeleteView",
-		lago.GetPageView("tally.TallyDeleteForm").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("tally.admin", requireAdminLayer{}).
-			WithLayer("tally.detail", views.LayerDetail[Tally]{
-				Key:          getters.Static("Tally"),
-				PathParamKey: getters.Static("id"),
-			}).
-			WithLayer("tally.delete", views.LayerDelete[Tally]{
-				Key:        getters.Static("Tally"),
-				SuccessURL: lago.RoutePath("tally.TallyListRoute", nil),
-			}))
-
-	lago.RegistryView.Register("tally.TallyDetailView",
-		lago.GetPageView("tally.TallyDetail").
-			WithLayer("users.auth", p_users.AuthenticationLayer{}).
-			WithLayer("tally.detail", views.LayerDetail[Tally]{
-				Key:          getters.Static("Tally"),
-				PathParamKey: getters.Static("id"),
-				QueryPatchers: views.QueryPatchers[Tally]{
-					{Key: "tally.detail", Value: TallyDetailQueryPatcher},
-				},
-			}))
+func pluginViews() lamu.PluginFeatures[*views.View] {
+	return lamu.PluginFeatures[*views.View]{
+		Entries: []registry.Pair[string, *views.View]{
+			{Key: "tally.TallyDashboardView", Value: lamu.GetPageView("tally.TallyDashboard").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("tally.dashboard", views.MethodLayer{
+					Method:  http.MethodGet,
+					Handler: TallyDashboardHandler,
+				})},
+			{Key: "tally.TallyLeaderboardView", Value: lamu.GetPageView("tally.TallyLeaderboard").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("tally.leaderboard", views.MethodLayer{
+					Method:  http.MethodGet,
+					Handler: TallyLeaderboardHandler,
+				})},
+			{Key: "tally.TallyListView", Value: lamu.GetPageView("tally.TallyTable").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("tally.list", views.LayerList[Tally]{
+					Key: getters.Static("Tallies"),
+					QueryPatchers: views.QueryPatchers[Tally]{
+						{Key: "tally.list", Value: TallyListQueryPatcher},
+					},
+				})},
+			{Key: "tally.TallyDailyFormView", Value: lamu.GetPageView("tally.TallyDailyForm").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("tally.daily_form_get", views.MethodLayer{
+					Method:  http.MethodGet,
+					Handler: TallyDailyFormHandler,
+				}).
+				WithLayer("tally.daily_form_post", views.MethodLayer{
+					Method:  http.MethodPost,
+					Handler: TallyDailyFormHandler,
+				})},
+			{Key: "tally.TallyCreateView", Value: lamu.GetPageView("tally.TallyCreateForm").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("tally.admin", requireAdminLayer{}).
+				WithLayer("tally.create", views.LayerCreate[Tally]{
+					SuccessURL: lamu.RoutePath("tally.TallyListRoute", nil),
+				})},
+			{Key: "tally.TallyUpdateView", Value: lamu.GetPageView("tally.TallyUpdateForm").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("tally.admin", requireAdminLayer{}).
+				WithLayer("tally.detail", views.LayerDetail[Tally]{
+					Key:          getters.Static("Tally"),
+					PathParamKey: getters.Static("id"),
+				}).
+				WithLayer("tally.update", views.LayerUpdate[Tally]{
+					Key:        getters.Static("Tally"),
+					SuccessURL: lamu.RoutePath("tally.TallyListRoute", nil),
+				})},
+			{Key: "tally.TallyDeleteView", Value: lamu.GetPageView("tally.TallyDeleteForm").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("tally.admin", requireAdminLayer{}).
+				WithLayer("tally.detail", views.LayerDetail[Tally]{
+					Key:          getters.Static("Tally"),
+					PathParamKey: getters.Static("id"),
+				}).
+				WithLayer("tally.delete", views.LayerDelete[Tally]{
+					Key:        getters.Static("Tally"),
+					SuccessURL: lamu.RoutePath("tally.TallyListRoute", nil),
+				})},
+			{Key: "tally.TallyDetailView", Value: lamu.GetPageView("tally.TallyDetail").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("tally.detail", views.LayerDetail[Tally]{
+					Key:          getters.Static("Tally"),
+					PathParamKey: getters.Static("id"),
+					QueryPatchers: views.QueryPatchers[Tally]{
+						{Key: "tally.detail", Value: TallyDetailQueryPatcher},
+					},
+				})},
+		},
+	}
 }

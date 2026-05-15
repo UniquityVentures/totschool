@@ -3,26 +3,39 @@ package main
 import (
 	"log/slog"
 
-	"github.com/UniquityVentures/lago/lago"
-	_ "github.com/UniquityVentures/lago/plugins/p_dashboard"
-	_ "github.com/UniquityVentures/lago/plugins/p_export"
-	_ "github.com/UniquityVentures/lago/plugins/p_livereloading"
-	_ "github.com/UniquityVentures/lago/plugins/p_otp"
-	_ "github.com/UniquityVentures/lago/plugins/p_pwa"
-	_ "github.com/UniquityVentures/lago/plugins/p_users"
-	_ "github.com/UniquityVentures/totschool_lago/plugins/p_totschool_appointments"
-	_ "github.com/UniquityVentures/totschool_lago/plugins/p_totschool_export"
-	_ "github.com/UniquityVentures/totschool_lago/plugins/p_totschool_proposals"
-	_ "github.com/UniquityVentures/totschool_lago/plugins/p_totschool_tally"
-	_ "github.com/UniquityVentures/totschool_lago/plugins/p_totschool_users"
+	"github.com/UniquityVentures/lamu/lamu"
+	"github.com/UniquityVentures/lamu/registry"
+
+	"github.com/UniquityVentures/lamu/plugins/p_dashboard"
+	"github.com/UniquityVentures/lamu/plugins/p_livereloading"
+	"github.com/UniquityVentures/lamu/plugins/p_otp"
+	"github.com/UniquityVentures/lamu/plugins/p_pwa"
+	"github.com/UniquityVentures/totschool/plugins/p_totschool_appointments"
+	"github.com/UniquityVentures/totschool/plugins/p_totschool_export"
+	"github.com/UniquityVentures/totschool/plugins/p_totschool_proposals"
+	"github.com/UniquityVentures/totschool/plugins/p_totschool_tally"
+	"github.com/UniquityVentures/totschool/plugins/p_totschool_users"
 )
 
 func main() {
-	config, err := lago.LoadConfigFromFile("totschool.toml")
+	plugins := []registry.Pair[string, lamu.Plugin]{
+		p_dashboard.GetPlugin(),
+		p_totschool_export.ExportPluginForTotschool(),
+		p_totschool_users.UsersPluginForTotschool(),
+		p_totschool_appointments.GetPlugin(),
+		p_totschool_proposals.GetPlugin(),
+		p_totschool_tally.GetPlugin(),
+		p_totschool_export.GetPlugin(),
+		p_totschool_users.GetPlugin(),
+		p_livereloading.GetPlugin(),
+		p_otp.GetPlugin(),
+		p_pwa.GetPlugin(),
+	}
+	config, err := lamu.LoadConfigFromFile("totschool.toml", plugins)
 	if err != nil {
 		panic(err)
 	}
-	if err := lago.Start(config); err != nil {
+	if err := lamu.Start(config, plugins); err != nil {
 		slog.Error(err.Error())
 	}
 }

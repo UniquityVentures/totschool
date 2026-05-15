@@ -1,29 +1,18 @@
 package p_totschool_users
 
 import (
-	"github.com/UniquityVentures/lago/lago"
-	"github.com/UniquityVentures/lago/views"
-
-	"github.com/UniquityVentures/lago/plugins/p_users"
+	"github.com/UniquityVentures/lamu/plugins/p_users"
+	"github.com/UniquityVentures/lamu/views"
 )
 
-// userViewsWithRoleLayer are the users plugin views that use "users.role" layer.
+// userViewsWithRoleLayer are p_users views that enforce "p_users.role".
 var userViewsWithRoleLayer = []string{
-	"users.ListView", "users.DetailView", "users.CreateView", "users.UpdateView",
-	"users.DeleteView", "users.ChangePasswordView", "users.SelectView",
-	"users.RoleSelectView", "users.RoleListView", "users.RoleDetailView",
-	"users.RoleCreateView", "users.RoleUpdateView", "users.RoleDeleteView",
+	"p_users.ListView", "p_users.DetailView", "p_users.CreateView", "p_users.UpdateView",
+	"p_users.DeleteView", "p_users.ChangePasswordView", "p_users.SelectView",
+	"p_users.RoleSelectView", "p_users.RoleListView", "p_users.RoleDetailView",
+	"p_users.RoleCreateView", "p_users.RoleUpdateView", "p_users.RoleDeleteView",
 }
 
-// Patch "users.role" layer to allow totschool_admin in addition to existing roles.
-func patcher(current views.Layer) views.Layer {
+func userRolePatcher(current views.Layer) views.Layer {
 	return p_users.RoleAuthorizationLayer{Roles: []string{"", "totschool_admin"}}
-}
-
-func init() {
-	for _, key := range userViewsWithRoleLayer {
-		if v, ok := lago.RegistryView.Get(key); ok {
-			v.PatchLayer("users.role", patcher)
-		}
-	}
 }

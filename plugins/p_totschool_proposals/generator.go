@@ -7,8 +7,8 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/UniquityVentures/lago/plugins/p_users"
-	"github.com/UniquityVentures/lago/registry"
+	"github.com/UniquityVentures/lamu/plugins/p_users"
+	"github.com/UniquityVentures/lamu/registry"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )

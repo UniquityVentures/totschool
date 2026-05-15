@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/UniquityVentures/lago/getters"
+	"github.com/UniquityVentures/lamu/getters"
 )
 
 // tallySessionEnvironmentDefault returns the TotSchoolSession id for the current quarter.

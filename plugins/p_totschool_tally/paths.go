@@ -1,47 +1,45 @@
 package p_totschool_tally
 
 import (
-	"github.com/UniquityVentures/lago/lago"
+	"github.com/UniquityVentures/lamu/lamu"
+	"github.com/UniquityVentures/lamu/registry"
 )
 
-func init() {
-	_ = lago.RegistryRoute.Register("tally.TallyListRoute", lago.Route{
-		Path:    "/tally/list/",
-		Handler: lago.NewDynamicView("tally.TallyListView"),
-	})
-
-	_ = lago.RegistryRoute.Register("tally.TallyDashboardRoute", lago.Route{
-		Path:    "/tally/",
-		Handler: lago.NewDynamicView("tally.TallyDashboardView"),
-	})
-
-	_ = lago.RegistryRoute.Register("tally.TallyLeaderboardRoute", lago.Route{
-		Path:    "/tally/leaderboard/",
-		Handler: lago.NewDynamicView("tally.TallyLeaderboardView"),
-	})
-
-	_ = lago.RegistryRoute.Register("tally.TallyDailyFormRoute", lago.Route{
-		Path:    "/tally/daily/",
-		Handler: lago.NewDynamicView("tally.TallyDailyFormView"),
-	})
-
-	_ = lago.RegistryRoute.Register("tally.TallyCreateRoute", lago.Route{
-		Path:    "/tally/create/",
-		Handler: lago.NewDynamicView("tally.TallyCreateView"),
-	})
-
-	_ = lago.RegistryRoute.Register("tally.TallyUpdateRoute", lago.Route{
-		Path:    "/tally/{id}/update/",
-		Handler: lago.NewDynamicView("tally.TallyUpdateView"),
-	})
-
-	_ = lago.RegistryRoute.Register("tally.TallyDeleteRoute", lago.Route{
-		Path:    "/tally/{id}/delete/",
-		Handler: lago.NewDynamicView("tally.TallyDeleteView"),
-	})
-
-	_ = lago.RegistryRoute.Register("tally.TallyDetailRoute", lago.Route{
-		Path:    "/tally/{id}/",
-		Handler: lago.NewDynamicView("tally.TallyDetailView"),
-	})
+func pluginRoutes() lamu.PluginFeatures[lamu.Route] {
+	return lamu.PluginFeatures[lamu.Route]{
+		Entries: []registry.Pair[string, lamu.Route]{
+			{Key: "tally.TallyListRoute", Value: lamu.Route{
+				Path:    "/tally/list/",
+				Handler: lamu.NewDynamicView("tally.TallyListView"),
+			}},
+			{Key: "tally.TallyDashboardRoute", Value: lamu.Route{
+				Path:    "/tally/",
+				Handler: lamu.NewDynamicView("tally.TallyDashboardView"),
+			}},
+			{Key: "tally.TallyLeaderboardRoute", Value: lamu.Route{
+				Path:    "/tally/leaderboard/",
+				Handler: lamu.NewDynamicView("tally.TallyLeaderboardView"),
+			}},
+			{Key: "tally.TallyDailyFormRoute", Value: lamu.Route{
+				Path:    "/tally/daily/",
+				Handler: lamu.NewDynamicView("tally.TallyDailyFormView"),
+			}},
+			{Key: "tally.TallyCreateRoute", Value: lamu.Route{
+				Path:    "/tally/create/",
+				Handler: lamu.NewDynamicView("tally.TallyCreateView"),
+			}},
+			{Key: "tally.TallyUpdateRoute", Value: lamu.Route{
+				Path:    "/tally/{id}/update/",
+				Handler: lamu.NewDynamicView("tally.TallyUpdateView"),
+			}},
+			{Key: "tally.TallyDeleteRoute", Value: lamu.Route{
+				Path:    "/tally/{id}/delete/",
+				Handler: lamu.NewDynamicView("tally.TallyDeleteView"),
+			}},
+			{Key: "tally.TallyDetailRoute", Value: lamu.Route{
+				Path:    "/tally/{id}/",
+				Handler: lamu.NewDynamicView("tally.TallyDetailView"),
+			}},
+		},
+	}
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/UniquityVentures/lago/getters"
+	"github.com/UniquityVentures/lamu/getters"
 )
 
 func getterGenerated() getters.Getter[bool] {
