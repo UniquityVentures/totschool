@@ -34,7 +34,7 @@ func clientDetailModalButtonAttr(tableSelector string) getters.Getter[gomponents
 const (
 	clientDetailAppointmentsContextKey = "client_appointments_table"
 	clientDetailAppointmentsLayerKey   = "appointments.client_detail"
-	clientDetailAppointmentsTableKey    = "appointments.ClientDetailAppointmentsTable"
+	clientDetailAppointmentsTableKey   = "appointments.ClientDetailAppointmentsTable"
 )
 
 func init() {
@@ -125,7 +125,7 @@ func clientDetailAppointmentColumns() []components.TableColumn {
 							),
 							ModalUID: "appointment-update-modal",
 							Classes:  "btn-outline btn-sm",
-							Attr: clientDetailModalButtonAttr("#client-detail-appointments-table"),
+							Attr:     clientDetailModalButtonAttr("#client-detail-appointments-table"),
 						},
 						components.ButtonModalForm{
 							Label: "Delete",
@@ -145,7 +145,7 @@ func clientDetailAppointmentColumns() []components.TableColumn {
 							),
 							ModalUID: "appointment-delete-modal",
 							Classes:  "btn-error btn-sm",
-							Attr: clientDetailModalButtonAttr("#client-detail-appointments-table"),
+							Attr:     clientDetailModalButtonAttr("#client-detail-appointments-table"),
 						},
 					},
 				},
@@ -162,7 +162,7 @@ func clientDetailAppointmentsSection() components.PageInterface {
 		Title:       "Appointments",
 		Classes:     "w-full mt-4",
 		Data:        getters.Key[components.ObjectList[Appointment]](clientDetailAppointmentsContextKey),
-		DefaultView: "List",
+		DefaultView: "Grid",
 		RowAttr: getters.RowAttrNavigate(lamu.RoutePath("appointments.DetailRoute", map[string]getters.Getter[any]{
 			"id": getters.Any(getters.Key[uint]("$row.ID")),
 		})),
@@ -182,7 +182,7 @@ func clientDetailAppointmentsSection() components.PageInterface {
 				ModalUID: "appointment-create-modal",
 				Icon:     "plus",
 				Classes:  "btn-square btn-outline btn-sm",
-				Attr: getters.ModalRefreshList(getters.Static(""), getters.Static("#client-detail-appointments-table")),
+				Attr:     getters.ModalRefreshList(getters.Static(""), getters.Static("#client-detail-appointments-table")),
 			},
 		},
 		Columns: clientDetailAppointmentColumns(),

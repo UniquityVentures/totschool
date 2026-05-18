@@ -71,3 +71,13 @@ require (
 	gorm.io/gorm v1.31.1 // indirect
 	maragu.dev/gomponents v1.3.0 // indirect
 )
+
+replace github.com/UniquityVentures/lamu v0.4.10 => ../../lamu
+
+replace github.com/UniquityVentures/lamu/plugins/p_dashboard v0.4.10 => ../../lamu/plugins/p_dashboard
+
+replace github.com/UniquityVentures/lamu/plugins/p_livereloading v0.4.10 => ../../lamu/plugins/p_livereloading
+
+replace github.com/UniquityVentures/lamu/plugins/p_otp v0.4.10 => ../../lamu/plugins/p_otp
+
+replace github.com/UniquityVentures/lamu/plugins/p_pwa v0.4.10 => ../../lamu/plugins/p_pwa

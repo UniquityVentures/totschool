@@ -158,7 +158,7 @@ func clientDetailProposalsSection() components.PageInterface {
 		Title:       "Proposals",
 		Classes:     "w-full mt-4",
 		Data:        getters.Key[components.ObjectList[Proposal]](clientDetailProposalsContextKey),
-		DefaultView: "List",
+		DefaultView: "Grid",
 		RowAttr: getters.RowAttrClickWithClass(
 			getters.Format(
 				"if (!$event.target.closest('button, a, input, select, textarea, .fk-modal-host')) { htmx.ajax('GET', '%s', {target: 'body', swap: 'outerHTML'}) }",
