@@ -22,9 +22,9 @@ func main() {
 	plugins := []registry.Pair[string, lamu.Plugin]{
 		p_dashboard.GetPlugin(),
 		p_totschool_export.ExportPluginForTotschool(),
+		p_totschool_clients.GetPlugin(),
 		p_totschool_users.UsersPluginForTotschool(),
 		p_totschool_appointments.GetPlugin(),
-		p_totschool_clients.GetPlugin(),
 		p_totschool_proposals.GetPlugin(),
 		p_totschool_tally.GetPlugin(),
 		p_totschool_export.GetPlugin(),
