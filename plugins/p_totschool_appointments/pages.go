@@ -41,7 +41,6 @@ func registerMenus() []registry.Pair[string, components.PageInterface] {
 			},
 			Children: []components.PageInterface{
 				components.SidebarMenuItem{Title: getters.Static("Appointment Detail"), Url: lamu.RoutePath("appointments.DetailRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("appointment.ID"))})},
-				components.SidebarMenuItem{Title: getters.Static("Edit Appointment"), Url: lamu.RoutePath("appointments.UpdateRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("appointment.ID"))})},
 			},
 		}},
 	}

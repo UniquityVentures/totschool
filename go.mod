@@ -3,11 +3,11 @@ module github.com/UniquityVentures/totschool
 go 1.26.1
 
 require (
-	github.com/UniquityVentures/lamu v0.4.10
-	github.com/UniquityVentures/lamu/plugins/p_dashboard v0.4.10
-	github.com/UniquityVentures/lamu/plugins/p_livereloading v0.4.10
-	github.com/UniquityVentures/lamu/plugins/p_otp v0.4.10
-	github.com/UniquityVentures/lamu/plugins/p_pwa v0.4.10
+	github.com/UniquityVentures/lamu v0.4.11
+	github.com/UniquityVentures/lamu/plugins/p_dashboard v0.4.11
+	github.com/UniquityVentures/lamu/plugins/p_livereloading v0.4.11
+	github.com/UniquityVentures/lamu/plugins/p_otp v0.4.11
+	github.com/UniquityVentures/lamu/plugins/p_pwa v0.4.11
 )
 
 require (
@@ -17,7 +17,7 @@ require (
 	charm.land/lipgloss/v2 v2.0.3 // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/BurntSushi/toml v1.6.0 // indirect
-	github.com/UniquityVentures/lamu/plugins/p_users v0.4.10 // indirect
+	github.com/UniquityVentures/lamu/plugins/p_users v0.4.11 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/catppuccin/go v0.2.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
@@ -71,13 +71,3 @@ require (
 	gorm.io/gorm v1.31.1 // indirect
 	maragu.dev/gomponents v1.3.0 // indirect
 )
-
-replace github.com/UniquityVentures/lamu v0.4.10 => ../../lamu
-
-replace github.com/UniquityVentures/lamu/plugins/p_dashboard v0.4.10 => ../../lamu/plugins/p_dashboard
-
-replace github.com/UniquityVentures/lamu/plugins/p_livereloading v0.4.10 => ../../lamu/plugins/p_livereloading
-
-replace github.com/UniquityVentures/lamu/plugins/p_otp v0.4.10 => ../../lamu/plugins/p_otp
-
-replace github.com/UniquityVentures/lamu/plugins/p_pwa v0.4.10 => ../../lamu/plugins/p_pwa

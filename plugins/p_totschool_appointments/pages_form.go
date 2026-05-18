@@ -45,6 +45,12 @@ func appointmentFormFields() []components.PageInterface {
 			},
 		},
 		components.ContainerError{
+			Error: getters.Key[error]("$error.Location"),
+			Children: []components.PageInterface{
+				components.InputText{Label: "Location", Name: "Location", Getter: getters.Key[string]("$in.Location")},
+			},
+		},
+		components.ContainerError{
 			Error: getters.Key[error]("$error.Remarks"),
 			Children: []components.PageInterface{
 				components.InputTextarea{Label: "Remarks", Name: "Remarks", Getter: getters.Key[string]("$in.Remarks"), Rows: 2},

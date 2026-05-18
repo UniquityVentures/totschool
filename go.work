@@ -10,12 +10,4 @@ use (
 	./plugins/p_totschool_users
 )
 
-replace (
-	github.com/UniquityVentures/lamu => ../../lamu
-	github.com/UniquityVentures/lamu/plugins/p_dashboard => ../../lamu/plugins/p_dashboard
-	github.com/UniquityVentures/lamu/plugins/p_export => ../../lamu/plugins/p_export
-	github.com/UniquityVentures/lamu/plugins/p_livereloading => ../../lamu/plugins/p_livereloading
-	github.com/UniquityVentures/lamu/plugins/p_otp => ../../lamu/plugins/p_otp
-	github.com/UniquityVentures/lamu/plugins/p_pwa => ../../lamu/plugins/p_pwa
-	github.com/UniquityVentures/lamu/plugins/p_users => ../../lamu/plugins/p_users
-)
+

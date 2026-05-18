@@ -91,6 +91,7 @@ func registerTable() []registry.Pair[string, components.PageInterface] {
 						{Label: "Phone", Name: "Phone", Children: []components.PageInterface{components.FieldPhone{Getter: clientPhoneFromRow()}}},
 						{Label: "Address", Name: "Address", Children: []components.PageInterface{components.FieldText{Getter: clientAddressFromRow()}}},
 						{Label: "Status", Name: "Status", Children: []components.PageInterface{components.FieldText{Getter: appointmentStatusLabelFromRow()}}},
+						{Label: "Location", Name: "Location", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$row.Location")}}},
 						{Label: "Date & Time", Name: "Datetime", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$row.Datetime")}}},
 						{Label: "Created By", Name: "CreatedBy", Children: []components.PageInterface{components.FieldText{Getter: getters.ForeignKey[p_users.User, uint, string](getters.Key[uint]("$row.CreatedByID"), "Name")}}},
 						{Label: "Created At", Name: "CreatedAt", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$row.CreatedAt")}}},
@@ -135,6 +136,7 @@ func registerSelectionPages() []registry.Pair[string, components.PageInterface] 
 					},
 					Columns: []components.TableColumn{
 						{Label: "Client", Name: "Client", Children: []components.PageInterface{components.FieldText{Getter: getters.ForeignKey[p_totschool_clients.Client, uint, string](getters.Key[uint]("$row.ClientID"), "Name")}}},
+						{Label: "Location", Name: "Location", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$row.Location")}}},
 						{Label: "Date & Time", Name: "Datetime", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$row.Datetime")}}},
 						{Label: "Status", Name: "Status", Children: []components.PageInterface{components.FieldText{Getter: appointmentStatusLabelFromRow()}}},
 					},
@@ -166,6 +168,9 @@ func registerSelectionPages() []registry.Pair[string, components.PageInterface] 
 							Children: []components.PageInterface{
 								components.FieldText{Classes: "font-bold", Getter: getters.ForeignKey[p_totschool_clients.Client, uint, string](getters.Key[uint]("$row.ClientID"), "Name")},
 								components.FieldDatetime{Getter: getters.Key[time.Time]("$row.Datetime"), Classes: "text-sm font-medium whitespace-nowrap"},
+								components.ShowIf{Getter: getters.Any(getters.Key[string]("$row.Location")), Children: []components.PageInterface{
+									components.FieldText{Getter: getters.Key[string]("$row.Location"), Classes: "text-sm"},
+								}},
 								components.FieldText{Classes: "text-sm", Getter: clientAddressFromRow()},
 								components.FieldPhone{Classes: "text-sm", Getter: clientPhoneFromRow()},
 								components.FieldText{Classes: "text-sm", Getter: appointmentStatusLabelFromRow()},

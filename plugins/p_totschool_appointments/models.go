@@ -19,6 +19,7 @@ type Appointment struct {
 	Client          p_totschool_clients.Client  `gorm:"foreignKey:ClientID"`
 	Datetime        time.Time                   `gorm:"notnull"`
 	Status          AppointmentStatus           `gorm:"type:appointment_status;notnull"`
+	Location        string                      `gorm:"type:text"`
 	Remarks         string                      `gorm:"type:text"`
 	ExtraInfo       string                      `gorm:"type:text"`
 	GeneratedLetter string                      `gorm:"type:text"`

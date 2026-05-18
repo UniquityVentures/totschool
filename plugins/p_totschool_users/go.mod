@@ -3,8 +3,8 @@ module github.com/UniquityVentures/totschool/plugins/p_totschool_users
 go 1.26.1
 
 require (
-	github.com/UniquityVentures/lamu v0.4.10
-	github.com/UniquityVentures/lamu/plugins/p_users v0.4.10
+	github.com/UniquityVentures/lamu v0.4.11
+	github.com/UniquityVentures/lamu/plugins/p_users v0.4.11
 	gorm.io/gorm v1.31.1
 )
 

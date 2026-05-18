@@ -85,7 +85,6 @@ func (clientAppointmentsContextLayer) Next(_ views.View, next http.Handler) http
 
 func clientDetailAppointmentColumns() []components.TableColumn {
 	updateFormName := getters.Static("appointments.AppointmentUpdateForm")
-	deleteFormName := getters.Static("appointments.AppointmentDeleteForm")
 
 	return []components.TableColumn{
 		{Label: "Status", Name: "Status", Children: []components.PageInterface{
@@ -93,6 +92,9 @@ func clientDetailAppointmentColumns() []components.TableColumn {
 		}},
 		{Label: "Date & Time", Name: "Datetime", Children: []components.PageInterface{
 			components.FieldDatetime{Getter: getters.Key[time.Time]("$row.Datetime")},
+		}},
+		{Label: "Location", Name: "Location", Children: []components.PageInterface{
+			components.FieldText{Getter: getters.Key[string]("$row.Location")},
 		}},
 		{Label: "Remarks", Name: "Remarks", Children: []components.PageInterface{
 			components.FieldText{Getter: getters.Key[string]("$row.Remarks")},
@@ -124,27 +126,7 @@ func clientDetailAppointmentColumns() []components.TableColumn {
 								})),
 							),
 							ModalUID: "appointment-update-modal",
-							Classes:  "btn-outline btn-sm",
-							Attr:     clientDetailModalButtonAttr("#client-detail-appointments-table"),
-						},
-						components.ButtonModalForm{
-							Label: "Delete",
-							Icon:  "trash",
-							Name:  deleteFormName,
-							Url: getters.Format(
-								"%s?return=client",
-								getters.Any(lamu.RoutePath("appointments.DeleteRoute", map[string]getters.Getter[any]{
-									"id": getters.Any(getters.Key[uint]("$row.ID")),
-								})),
-							),
-							FormPostURL: getters.Format(
-								"%s?return=client",
-								getters.Any(lamu.RoutePath("appointments.DeleteRoute", map[string]getters.Getter[any]{
-									"id": getters.Any(getters.Key[uint]("$row.ID")),
-								})),
-							),
-							ModalUID: "appointment-delete-modal",
-							Classes:  "btn-error btn-sm",
+							Classes:  "btn-outline btn-sm m-2",
 							Attr:     clientDetailModalButtonAttr("#client-detail-appointments-table"),
 						},
 					},

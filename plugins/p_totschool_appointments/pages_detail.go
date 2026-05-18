@@ -72,19 +72,32 @@ func registerDetail() []registry.Pair[string, components.PageInterface] {
 									},
 								}},
 							}},
-							components.ContainerRow{Classes: "flex justify-between items-start", Children: []components.PageInterface{
-								components.ContainerColumn{Children: []components.PageInterface{
-									components.FieldTitle{Getter: getters.Key[string]("$in.Client.Name")},
-									components.FieldSubtitle{Getter: getters.Deref(getters.Key[*string]("$in.Client.Address"))},
-								}},
+							components.ContainerColumn{Children: []components.PageInterface{
+								components.FieldTitle{Getter: getters.Key[string]("$in.Client.Name")},
+								components.FieldSubtitle{Getter: getters.Deref(getters.Key[*string]("$in.Client.Address"))},
 							}},
+
 							components.LabelInline{Title: "Phone", Children: []components.PageInterface{components.FieldPhone{Getter: clientPhoneFromIn()}}},
 							components.LabelInline{Title: "Status", Children: []components.PageInterface{components.FieldText{Getter: appointmentStatusLabelFromIn()}}},
 							components.LabelInline{Title: "Date & Time", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$in.Datetime")}}},
+							components.LabelInline{Title: "Location", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$in.Location")}}},
 							components.LabelInline{Title: "Remarks", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$in.Remarks")}}},
 							components.LabelInline{Title: "Extra Info", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$in.ExtraInfo")}}},
 							components.LabelInline{Title: "Created By", Children: []components.PageInterface{components.FieldText{Getter: getters.ForeignKey[p_users.User, uint, string](getters.Key[uint]("$in.CreatedByID"), "Name")}}},
 							components.LabelInline{Title: "Created At", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$in.CreatedAt")}}},
+							components.ButtonModalForm{
+								Label: "Edit",
+								Icon:  "pencil",
+								Name:  getters.Static("appointments.AppointmentUpdateForm"),
+								Url: lamu.RoutePath("appointments.UpdateRoute", map[string]getters.Getter[any]{
+									"id": getters.Any(getters.Key[uint]("appointment.ID")),
+								}),
+								FormPostURL: lamu.RoutePath("appointments.UpdateRoute", map[string]getters.Getter[any]{
+									"id": getters.Any(getters.Key[uint]("appointment.ID")),
+								}),
+								ModalUID: "appointment-update-modal",
+								Classes:  "mt-4",
+							},
 							components.ContainerColumn{Classes: "mt-6", Children: []components.PageInterface{
 								components.ShowIf{Getter: getters.Any(getterGenerated()), Children: generatedSection},
 								components.ShowIf{Getter: getters.Any(getterGenerationPending()), Children: pendingSection},

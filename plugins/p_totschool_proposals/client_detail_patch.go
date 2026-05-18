@@ -84,7 +84,6 @@ func (clientProposalsContextLayer) Next(_ views.View, next http.Handler) http.Ha
 
 func clientDetailProposalColumns() []components.TableColumn {
 	updateFormName := getters.Static("proposals.ProposalUpdateForm")
-	deleteFormName := getters.Static("proposals.ProposalDeleteForm")
 
 	return []components.TableColumn{
 		{Label: "Title", Name: "Title", Children: []components.PageInterface{
@@ -120,27 +119,7 @@ func clientDetailProposalColumns() []components.TableColumn {
 								})),
 							),
 							ModalUID: "proposal-update-modal",
-							Classes:  "btn-outline btn-sm",
-							Attr:     clientDetailModalButtonAttr("#client-detail-proposals-table"),
-						},
-						components.ButtonModalForm{
-							Label: "Delete",
-							Icon:  "trash",
-							Name:  deleteFormName,
-							Url: getters.Format(
-								"%s?return=client",
-								getters.Any(lamu.RoutePath("proposals.DeleteRoute", map[string]getters.Getter[any]{
-									"id": getters.Any(getters.Key[uint]("$row.ID")),
-								})),
-							),
-							FormPostURL: getters.Format(
-								"%s?return=client",
-								getters.Any(lamu.RoutePath("proposals.DeleteRoute", map[string]getters.Getter[any]{
-									"id": getters.Any(getters.Key[uint]("$row.ID")),
-								})),
-							),
-							ModalUID: "proposal-delete-modal",
-							Classes:  "btn-error btn-sm",
+							Classes:  "btn-outline btn-sm m-2",
 							Attr:     clientDetailModalButtonAttr("#client-detail-proposals-table"),
 						},
 					},

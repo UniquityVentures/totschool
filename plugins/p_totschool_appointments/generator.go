@@ -111,6 +111,7 @@ func GenerateAppointmentsForUser(db *gorm.DB, user p_users.User, count int) {
 			ClientID:    client.ID,
 			Datetime:    apptDate,
 			Status:      appointmentStatusForDatetime(apptDate),
+			Location:    location,
 			Remarks:     remarks,
 			ExtraInfo:   extraInfo,
 		}

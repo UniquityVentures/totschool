@@ -159,9 +159,9 @@ func buildLetterContent(_ *gorm.DB, ctx context.Context, appointment *Appointmen
 		timezone = components.DefaultTimeZone
 	}
 	clientName := appointment.Client.Name
-	clientAddress := ""
-	if appointment.Client.Address != nil {
-		clientAddress = *appointment.Client.Address
+	meetingLocation := appointment.Location
+	if meetingLocation == "" && appointment.Client.Address != nil {
+		meetingLocation = *appointment.Client.Address
 	}
 
 	replacements := map[string]string{
@@ -177,8 +177,8 @@ func buildLetterContent(_ *gorm.DB, ctx context.Context, appointment *Appointmen
 
 	// Pass location and extra_info to the AI separately so it can incorporate them naturally.
 	userContent = "Letter draft:\n\n" + content
-	if clientAddress != "" {
-		userContent += "\n\nMeeting location (incorporate naturally into the letter): " + clientAddress
+	if meetingLocation != "" {
+		userContent += "\n\nMeeting location (incorporate naturally into the letter): " + meetingLocation
 	}
 	if appointment.ExtraInfo != "" {
 		userContent += "\n\nExtra context to incorporate naturally: " + appointment.ExtraInfo

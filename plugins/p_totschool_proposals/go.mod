@@ -3,16 +3,14 @@ module github.com/UniquityVentures/totschool/plugins/p_totschool_proposals
 go 1.26.1
 
 require (
-	github.com/UniquityVentures/lamu v0.4.10
-	github.com/UniquityVentures/lamu/plugins/p_users v0.4.10
-	github.com/UniquityVentures/totschool/plugins/p_totschool_clients v0.0.0
+	github.com/UniquityVentures/lamu v0.4.11
+	github.com/UniquityVentures/lamu/plugins/p_users v0.4.11
 	github.com/alnah/go-md2pdf v1.9.2
 	google.golang.org/genai v1.57.0
 	gorm.io/datatypes v1.2.7
 	gorm.io/gorm v1.31.1
+	maragu.dev/gomponents v1.3.0
 )
-
-replace github.com/UniquityVentures/totschool/plugins/p_totschool_clients => ../p_totschool_clients
 
 require (
 	charm.land/bubbles/v2 v2.0.0 // indirect
@@ -99,5 +97,4 @@ require (
 	gorm.io/driver/mysql v1.5.6 // indirect
 	gorm.io/driver/postgres v1.6.0 // indirect
 	gorm.io/driver/sqlite v1.6.0 // indirect
-	maragu.dev/gomponents v1.3.0 // indirect
 )
