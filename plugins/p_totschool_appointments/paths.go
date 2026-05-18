@@ -19,6 +19,7 @@ func pluginRoutes() lamu.PluginFeatures[lamu.Route] {
 			{Key: "appointments.AiEditFormRoute", Value: lamu.Route{Path: AppUrl + "{id}/ai-edit/form/", Handler: lamu.NewDynamicView("appointments.AiEditFormView")}},
 			{Key: "appointments.AiEditRoute", Value: lamu.Route{Path: AppUrl + "{id}/ai-edit/", Handler: lamu.NewDynamicView("appointments.AiEditView")}},
 			{Key: "appointments.SelectRoute", Value: lamu.Route{Path: AppUrl + "select/", Handler: lamu.NewDynamicView("appointments.SelectView")}},
+			{Key: "appointments.UserSelectRoute", Value: lamu.Route{Path: AppUrl + "users/select/", Handler: lamu.NewDynamicView("appointments.UserSelectView")}},
 		},
 	}
 }

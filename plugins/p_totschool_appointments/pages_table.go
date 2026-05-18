@@ -1,7 +1,6 @@
 package p_totschool_appointments
 
 import (
-	"context"
 	"time"
 
 	"github.com/UniquityVentures/lamu/components"
@@ -9,6 +8,7 @@ import (
 	"github.com/UniquityVentures/lamu/lamu"
 	"github.com/UniquityVentures/lamu/plugins/p_users"
 	"github.com/UniquityVentures/lamu/registry"
+	"github.com/UniquityVentures/totschool/plugins/p_totschool_clients"
 )
 
 func registerFilter() []registry.Pair[string, components.PageInterface] {
@@ -18,15 +18,40 @@ func registerFilter() []registry.Pair[string, components.PageInterface] {
 
 			ChildrenInput: []components.PageInterface{
 				components.ContainerError{
-					Error: getters.Key[error]("$error.Name"),
+					Error: getters.Key[error]("$error.ClientID"),
 					Children: []components.PageInterface{
-						components.InputText{Label: "Name", Name: "Name", Getter: getters.Key[string]("$get.Name")},
+						components.InputForeignKey[p_totschool_clients.Client]{
+							Label:       "Client",
+							Name:        "ClientID",
+							Url:         lamu.RoutePath("clients.SelectRoute", nil),
+							Placeholder: "Filter by client…",
+							Display:     getters.Key[string]("$in.Name"),
+							Getter:      getters.Association[p_totschool_clients.Client](getters.Key[uint]("$get.ClientID")),
+						},
 					},
 				},
 				components.ContainerError{
-					Error: getters.Key[error]("$error.Location"),
+					Error: getters.Key[error]("$error.CreatedByID"),
 					Children: []components.PageInterface{
-						components.InputText{Label: "Location", Name: "Location", Getter: getters.Key[string]("$get.Location")},
+						components.InputForeignKey[p_users.User]{
+							Label:       "Created By",
+							Name:        "CreatedByID",
+							Url:         lamu.RoutePath("appointments.UserSelectRoute", nil),
+							Placeholder: "Filter by user…",
+							Display:     getters.Key[string]("$in.Name"),
+							Getter:      getters.Association[p_users.User](getters.Key[uint]("$get.CreatedByID")),
+						},
+					},
+				},
+				components.ContainerError{
+					Error: getters.Key[error]("$error.Status"),
+					Children: []components.PageInterface{
+						components.InputSelect[AppointmentStatus]{
+							Label:   "Status",
+							Name:    "Status",
+							Choices: getters.Static(AppointmentStatusChoices),
+							Getter:  appointmentStatusSelectGetter("$get.Status"),
+						},
 					},
 				},
 				components.ContainerError{
@@ -59,13 +84,13 @@ func registerTable() []registry.Pair[string, components.PageInterface] {
 					Subtitle: "List of appointments",
 					Actions: []components.PageInterface{
 						&components.TableButtonFilter{Child: lamu.DynamicPage{Name: "appointments.AppointmentFilter"}},
-						&components.TableButtonCreate{Link: lamu.RoutePath("appointments.CreateRoute", nil)},
 					},
 					RowAttr: getters.RowAttrNavigate(lamu.RoutePath("appointments.DetailRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("$row.ID"))})),
 					Columns: []components.TableColumn{
-						{Label: "Name", Name: "Name", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$row.Name")}}},
-						{Label: "Location", Name: "Location", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$row.Location")}}},
-						{Label: "Phone", Name: "Phone", Children: []components.PageInterface{components.FieldPhone{Getter: getters.Key[string]("$row.Phone")}}},
+						{Label: "Client", Name: "Client", Children: []components.PageInterface{components.FieldText{Getter: getters.ForeignKey[p_totschool_clients.Client, uint, string](getters.Key[uint]("$row.ClientID"), "Name")}}},
+						{Label: "Phone", Name: "Phone", Children: []components.PageInterface{components.FieldPhone{Getter: clientPhoneFromRow()}}},
+						{Label: "Address", Name: "Address", Children: []components.PageInterface{components.FieldText{Getter: clientAddressFromRow()}}},
+						{Label: "Status", Name: "Status", Children: []components.PageInterface{components.FieldText{Getter: appointmentStatusLabelFromRow()}}},
 						{Label: "Date & Time", Name: "Datetime", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$row.Datetime")}}},
 						{Label: "Created By", Name: "CreatedBy", Children: []components.PageInterface{components.FieldText{Getter: getters.ForeignKey[p_users.User, uint, string](getters.Key[uint]("$row.CreatedByID"), "Name")}}},
 						{Label: "Created At", Name: "CreatedAt", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$row.CreatedAt")}}},
@@ -78,6 +103,25 @@ func registerTable() []registry.Pair[string, components.PageInterface] {
 
 func registerSelectionPages() []registry.Pair[string, components.PageInterface] {
 	return []registry.Pair[string, components.PageInterface]{
+		{Key: "appointments.UserSelectionTable", Value: components.Modal{
+			UID: "appointment-user-selection-modal",
+			Children: []components.PageInterface{
+				components.DataTable[p_users.User]{
+					UID:   "appointment-user-selection-table",
+					Title: "Select User",
+					Data:  getters.Key[components.ObjectList[p_users.User]]("users"),
+					RowAttr: getters.RowAttrSelectNamed(
+						getters.IfOrElse(getters.Key[string]("$get.target_input"), getters.Static("CreatedByID")),
+						getters.Key[uint]("$row.ID"),
+						getters.Key[string]("$row.Name"),
+					),
+					Columns: []components.TableColumn{
+						{Label: "Name", Name: "Name", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$row.Name")}}},
+						{Label: "Email", Name: "Email", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$row.Email")}}},
+					},
+				},
+			},
+		}},
 		{Key: "appointments.AppointmentSelectionTable", Value: components.Modal{
 			UID: "appointment-selection-modal",
 			Children: []components.PageInterface{
@@ -85,56 +129,46 @@ func registerSelectionPages() []registry.Pair[string, components.PageInterface] 
 					UID:     "appointment-selection-table",
 					Title:   "Select Appointment",
 					Data:    getters.Key[components.ObjectList[Appointment]]("appointments"),
-					RowAttr: getters.RowAttrSelect("appointment", getters.Key[uint]("$row.ID"), getters.Key[string]("$row.Name")),
+					RowAttr: getters.RowAttrSelect("appointment", getters.Key[uint]("$row.ID"), getters.ForeignKey[p_totschool_clients.Client, uint, string](getters.Key[uint]("$row.ClientID"), "Name")),
 					Actions: []components.PageInterface{
 						&components.TableButtonFilter{Child: lamu.DynamicPage{Name: "appointments.AppointmentFilter"}},
 					},
 					Columns: []components.TableColumn{
-						{Label: "Name", Name: "Name", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$row.Name")}}},
-						{Label: "Location", Name: "Location", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$row.Location")}}},
-						{Label: "Phone", Name: "Phone", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$row.Phone")}}},
-						{Label: "Date & Time", Name: "Datetime", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$row.Datetime")}}},
+						{Label: "Client", Name: "Client", Children: []components.PageInterface{components.FieldText{Getter: getters.ForeignKey[p_totschool_clients.Client, uint, string](getters.Key[uint]("$row.ClientID"), "Name")}}},
+						{Label: "Date & Time", Name: "Datetime", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$row.Datetime")}}},
+						{Label: "Status", Name: "Status", Children: []components.PageInterface{components.FieldText{Getter: appointmentStatusLabelFromRow()}}},
 					},
 				},
-			},
-		}},
-		{Key: "appointments.AppointmentCardTimelineFilter", Value: components.FormComponent[Appointment]{
-			Attr: getters.FormBoostedGet(lamu.RoutePath("appointments.CardTimelineRoute", nil)),
-
-			ChildrenInput: []components.PageInterface{
-				components.ContainerError{
-					Error: getters.Key[error]("$error.Date"),
-					Children: []components.PageInterface{
-						components.InputDate{Label: "Date", Name: "Date", Getter: getters.IfOrElse(getters.Key[time.Time]("$get.Date"), func(ctx context.Context) (time.Time, error) {
-							return time.Now(), nil
-						})},
-					},
-				},
-			},
-			ChildrenAction: []components.PageInterface{
-				components.ContainerRow{Classes: "flex gap-2", Children: []components.PageInterface{
-					components.ButtonSubmit{Label: "Apply Filters"},
-					components.ButtonClear{Label: "Clear"},
-				}},
 			},
 		}},
 		{Key: "appointments.AppointmentCardTimeline", Value: components.ShellScaffold{
 			Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "appointments.AppointmentMenu"}},
 			Children: []components.PageInterface{
-				components.ButtonLink{Label: "Create New Appointment", Classes: "btn mb-4", Link: lamu.RoutePath("appointments.CreateRoute", nil)},
+				components.FormComponent[Appointment]{
+					Classes: "max-w-xs mb-4",
+					Attr:    appointmentTimelineDateFilterAttr(),
+					ChildrenInput: []components.PageInterface{
+						components.ContainerError{
+							Error: getters.Key[error]("$error.Date"),
+							Children: []components.PageInterface{
+								components.InputDate{Label: "Date", Name: "Date", Getter: appointmentTimelineDateGetter()},
+							},
+						},
+					},
+				},
 				components.Timeline[Appointment]{
-					UID:             "appointment-timeline",
-					Title:           "Appointments Timeline",
-					Data:            getters.Key[components.ObjectList[Appointment]]("appointments"),
-					FilterComponent: lamu.DynamicPage{Name: "appointments.AppointmentCardTimelineFilter"},
-					OnClick:         lamu.RoutePath("appointments.DetailRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("$row.ID"))}),
+					UID:     "appointment-timeline",
+					Title:   "Appointments Timeline",
+					Data:    getters.Key[components.ObjectList[Appointment]]("appointments"),
+					OnClick: lamu.RoutePath("appointments.DetailRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("$row.ID"))}),
 					Children: []components.PageInterface{
 						components.ContainerColumn{
 							Children: []components.PageInterface{
-								components.FieldText{Classes: "font-bold", Getter: getters.Key[string]("$row.Name")},
+								components.FieldText{Classes: "font-bold", Getter: getters.ForeignKey[p_totschool_clients.Client, uint, string](getters.Key[uint]("$row.ClientID"), "Name")},
 								components.FieldDatetime{Getter: getters.Key[time.Time]("$row.Datetime"), Classes: "text-sm font-medium whitespace-nowrap"},
-								components.FieldText{Classes: "text-sm", Getter: getters.Key[string]("$row.Location")},
-								components.FieldPhone{Classes: "text-sm", Getter: getters.Key[string]("$row.Phone")},
+								components.FieldText{Classes: "text-sm", Getter: clientAddressFromRow()},
+								components.FieldPhone{Classes: "text-sm", Getter: clientPhoneFromRow()},
+								components.FieldText{Classes: "text-sm", Getter: appointmentStatusLabelFromRow()},
 								components.ShowIf{Getter: getters.Any(getters.Key[string]("$row.Remarks")), Children: []components.PageInterface{
 									components.FieldText{Getter: getters.Key[string]("$row.Remarks"), Classes: "text-sm italic"},
 								}},

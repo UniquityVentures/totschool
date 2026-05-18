@@ -3,6 +3,7 @@ go 1.26.1
 use (
 	.
 	./plugins/p_totschool_appointments
+	./plugins/p_totschool_clients
 	./plugins/p_totschool_export
 	./plugins/p_totschool_proposals
 	./plugins/p_totschool_tally

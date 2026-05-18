@@ -17,7 +17,7 @@ func pluginPages() lamu.PluginFeatures[components.PageInterface] {
 	entries = append(entries, registerModal()...)
 	entries = append(entries, registerDelete()...)
 	entries = append(entries, registerSelectionPages()...)
-	return lamu.PluginFeatures[components.PageInterface]{Entries: entries}
+	return pluginPagesWithPatches(entries)
 }
 
 func registerMenus() []registry.Pair[string, components.PageInterface] {
@@ -31,11 +31,10 @@ func registerMenus() []registry.Pair[string, components.PageInterface] {
 			Children: []components.PageInterface{
 				components.SidebarMenuItem{Title: getters.Static("All Appointments"), Url: lamu.RoutePath("appointments.ListRoute", nil)},
 				components.SidebarMenuItem{Title: getters.Static("Appointments Timeline"), Url: lamu.RoutePath("appointments.CardTimelineRoute", nil)},
-				components.SidebarMenuItem{Title: getters.Static("Create Appointment"), Url: lamu.RoutePath("appointments.CreateRoute", nil)},
 			},
 		}},
 		{Key: "appointments.AppointmentDetailMenu", Value: components.SidebarMenu{
-			Title: getters.Format("Appointment: %s", getters.Any(getters.Key[string]("appointment.Name"))),
+			Title: getters.Format("Appointment: %s", getters.Any(getters.Key[string]("appointment.Client.Name"))),
 			Back: &components.SidebarMenuItem{
 				Title: getters.Static("Back to all Appointments"),
 				Url:   lamu.RoutePath("appointments.ListRoute", nil),

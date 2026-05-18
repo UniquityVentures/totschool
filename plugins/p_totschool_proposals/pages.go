@@ -7,6 +7,7 @@ import (
 	"github.com/UniquityVentures/lamu/getters"
 	"github.com/UniquityVentures/lamu/lamu"
 	"github.com/UniquityVentures/lamu/registry"
+	"github.com/UniquityVentures/totschool/plugins/p_totschool_clients"
 	"gorm.io/datatypes"
 )
 
@@ -19,14 +20,13 @@ func registerMenus() []registry.Pair[string, components.PageInterface] {
 				Url:   lamu.RoutePath("dashboard.AppsPage", nil),
 			},
 			Children: []components.PageInterface{
-				components.SidebarMenuItem{Title: getters.Static("All Proposals"), Url: lamu.RoutePath("proposals.ListRoute", nil)},
-				components.SidebarMenuItem{Title: getters.Static("Create Proposal"), Url: lamu.RoutePath("proposals.CreateRoute", nil)},
+				components.SidebarMenuItem{Title: getters.Static("Unassigned Proposals"), Url: lamu.RoutePath("proposals.ListRoute", nil)},
 			},
 		}},
 		{Key: "proposals.ProposalDetailMenu", Value: components.SidebarMenu{
 			Title: getters.Format("Proposal: %s", getters.Any(getters.Key[string]("proposal.Title"))),
 			Back: &components.SidebarMenuItem{
-				Title: getters.Static("Back to all Proposals"),
+				Title: getters.Static("Back to Unassigned Proposals"),
 				Url:   lamu.RoutePath("proposals.ListRoute", nil),
 			},
 			Children: []components.PageInterface{
@@ -53,36 +53,83 @@ func registerFilter() []registry.Pair[string, components.PageInterface] {
 	}}}
 }
 
+func proposalQuestionnaireFields(includeClientPicker bool) []components.PageInterface {
+	fields := []components.PageInterface{}
+	if includeClientPicker {
+		fields = append(fields, components.ContainerError{
+			Error: getters.Key[error]("$error.ClientID"),
+			Children: []components.PageInterface{
+				components.InputForeignKey[p_totschool_clients.Client]{
+					Name:        "ClientID",
+					Label:       "Client",
+					Url:         lamu.RoutePath("clients.SelectRoute", nil),
+					Display:     getters.Key[string]("$in.Name"),
+					Placeholder: "Select a client...",
+					Getter:      getters.Association[p_totschool_clients.Client](getters.Key[uint]("$in.ClientID")),
+				},
+			},
+		})
+	} else {
+		fields = append(fields, components.InputForeignKey[p_totschool_clients.Client]{
+			Hidden: true,
+			Name:   "ClientID",
+			Getter: getters.Association[p_totschool_clients.Client](getters.Key[uint]("$in.ClientID")),
+		})
+	}
+	fields = append(fields,
+		components.InputText{Label: "Proposal Title", Name: "Title", Required: true, Getter: getters.Key[string]("$in.Title")},
+		components.InputKeyValue{Getter: getters.Key[datatypes.JSON]("$in.Answers"), Keys: getters.Static(QUESTIONS), Name: "Answers"},
+	)
+	return fields
+}
+
 func registerForms() []registry.Pair[string, components.PageInterface] {
 	createFormName := getters.Static("proposals.ProposalCreateForm")
 	updateFormName := getters.Static("proposals.ProposalUpdateForm")
 	deleteFormName := getters.Static("proposals.ProposalDeleteForm")
 	return []registry.Pair[string, components.PageInterface]{
-		{Key: "proposals.ProposalFormFields", Value: components.ContainerColumn{
+		{Key: "proposals.ProposalCreateForm", Value: components.Modal{
+			UID: "proposal-create-modal",
 			Children: []components.PageInterface{
-				components.ContainerColumn{Children: []components.PageInterface{components.InputText{Label: "Proposal Title", Name: "Title", Required: true, Getter: getters.Key[string]("$in.Title")}, components.InputKeyValue{Getter: getters.Key[datatypes.JSON]("$in.Answers"), Keys: getters.Static(QUESTIONS), Name: "Answers"}}},
+				components.FormComponent[Proposal]{
+					Attr:           getters.FormBubbling(createFormName),
+					Title:          "Create Proposal",
+					Subtitle:       "Fill in the questionnaire answers",
+					ChildrenInput:  proposalQuestionnaireFields(false),
+					ChildrenAction: []components.PageInterface{components.ButtonSubmit{Label: "Save Proposal"}},
+				},
 			},
 		}},
-		{Key: "proposals.ProposalCreateForm", Value: components.ShellScaffold{
-			Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "proposals.ProposalMenu"}},
+		{Key: "proposals.ProposalUpdateForm", Value: components.Modal{
+			UID: "proposal-update-modal",
 			Children: []components.PageInterface{
-				&components.FormListenBoostedPost{
-					Name:      createFormName,
-					ActionURL: lamu.RoutePath("proposals.CreateRoute", nil),
-					Children: []components.PageInterface{
-						components.FormComponent[Proposal]{
-							Attr: getters.FormBubbling(createFormName),
-
-							Title:          "Create Proposal",
-							Subtitle:       "Fill in the questionnaire answers",
-							ChildrenInput:  []components.PageInterface{components.InputText{Label: "Proposal Title", Name: "Title", Required: true, Getter: getters.Key[string]("$in.Title")}, components.InputKeyValue{Getter: getters.Key[datatypes.JSON]("$in.Answers"), Keys: getters.Static(QUESTIONS), Name: "Answers"}},
-							ChildrenAction: []components.PageInterface{components.ButtonSubmit{Label: "Save Proposal"}},
+				components.FormComponent[Proposal]{
+					Getter:        getters.Key[Proposal]("proposal"),
+					Attr:          getters.FormBubbling(updateFormName),
+					Title:         "Edit Proposal",
+					Subtitle:      "Update questionnaire answers",
+					ChildrenInput: proposalQuestionnaireFields(false),
+					ChildrenAction: []components.PageInterface{
+						components.ContainerRow{
+							Classes: "flex flex-wrap justify-end gap-2 mt-2",
+							Children: []components.PageInterface{
+								components.ButtonSubmit{Label: "Save Proposal"},
+								components.ButtonModalForm{
+									Label:       "Delete",
+									Icon:        "trash",
+									Name:        deleteFormName,
+									Url:         lamu.RoutePath("proposals.DeleteRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("proposal.ID"))}),
+									FormPostURL: lamu.RoutePath("proposals.DeleteRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("proposal.ID"))}),
+									ModalUID:    "proposal-delete-modal",
+									Classes:     "btn-error",
+								},
+							},
 						},
 					},
 				},
 			},
 		}},
-		{Key: "proposals.ProposalUpdateForm", Value: components.ShellScaffold{
+		{Key: "proposals.ProposalUpdatePageForm", Value: components.ShellScaffold{
 			Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "proposals.ProposalDetailMenu"}},
 			Children: []components.PageInterface{
 				&components.FormListenBoostedPost{
@@ -93,16 +140,9 @@ func registerForms() []registry.Pair[string, components.PageInterface] {
 							Getter: getters.Key[Proposal]("proposal"),
 							Attr:   getters.FormBubbling(updateFormName),
 
-							Title:    "Edit Proposal",
-							Subtitle: "Update questionnaire answers",
-							ChildrenInput: []components.PageInterface{
-								components.InputText{Label: "Title", Name: "Title", Getter: getters.Key[string]("$in.Title")},
-								components.InputKeyValue{
-									Getter: getters.Key[datatypes.JSON]("$in.Answers"),
-									Keys:   getters.Static(QUESTIONS),
-									Name:   "Answers",
-								},
-							},
+							Title:         "Edit Proposal",
+							Subtitle:      "Update questionnaire answers",
+							ChildrenInput: proposalQuestionnaireFields(false),
 							ChildrenAction: []components.PageInterface{
 								components.ContainerRow{
 									Classes: "flex flex-wrap justify-between gap-2 mt-2 items-center",
@@ -140,11 +180,10 @@ func registerTable() []registry.Pair[string, components.PageInterface] {
 			components.DataTable[Proposal]{
 				UID:      "proposal-table",
 				Data:     getters.Key[components.ObjectList[Proposal]]("proposals"),
-				Title:    "Proposals",
-				Subtitle: "List of financial proposals",
+				Title:    "Unassigned Proposals",
+				Subtitle: "Proposals not yet linked to a client",
 				Actions: []components.PageInterface{
 					&components.TableButtonFilter{Child: lamu.DynamicPage{Name: "proposals.ProposalFilter"}},
-					&components.TableButtonCreate{Link: lamu.RoutePath("proposals.CreateRoute", nil)},
 				},
 				RowAttr: getters.RowAttrNavigate(lamu.RoutePath("proposals.DetailRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("$row.ID"))})),
 				Columns: []components.TableColumn{
@@ -288,5 +327,5 @@ func pluginPages() lamu.PluginFeatures[components.PageInterface] {
 	entries = append(entries, registerDetail()...)
 	entries = append(entries, registerModal()...)
 	entries = append(entries, registerDelete()...)
-	return lamu.PluginFeatures[components.PageInterface]{Entries: entries}
+	return pluginPagesWithPatches(entries)
 }

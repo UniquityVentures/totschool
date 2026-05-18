@@ -9,6 +9,7 @@ import (
 	"github.com/UniquityVentures/lamu/lamu"
 	"github.com/UniquityVentures/lamu/plugins/p_users"
 	"github.com/UniquityVentures/lamu/registry"
+	"github.com/UniquityVentures/totschool/plugins/p_totschool_clients"
 	"gorm.io/gorm"
 )
 
@@ -43,17 +44,25 @@ var Locations = []string{
 	"Branch Office (East)",
 }
 
+func appointmentStatusForDatetime(dt time.Time) AppointmentStatus {
+	if dt.Before(time.Now()) {
+		return AppointmentStatusPending
+	}
+	if dt.After(time.Now()) {
+		return AppointmentStatusDone
+	}
+	return AppointmentStatusPending
+}
+
 func GenerateAppointmentsForUser(db *gorm.DB, user p_users.User, count int) {
 	now := time.Now()
 	for range count {
-		// Calculate a random datetime within the next 30 days, between 9 AM and 5 PM
-		daysOffset := rand.Intn(30) + 1      // 1 to 30 days from now
-		hoursOffset := rand.Intn(8) + 9      // 9 AM to 4 PM (inclusive)
-		minutesOffset := (rand.Intn(4)) * 15 // 0, 15, 30, 45 minutes
+		daysOffset := rand.Intn(30) + 1
+		hoursOffset := rand.Intn(8) + 9
+		minutesOffset := (rand.Intn(4)) * 15
 
 		apptDate := time.Date(now.Year(), now.Month(), now.Day()+daysOffset, hoursOffset, minutesOffset, 0, 0, now.Location())
 
-		// Ensure no overlapping appointments for this user
 		for {
 			overlappingCount, err := gorm.G[Appointment](db).Where(
 				"created_by_id = ? AND datetime = ?",
@@ -66,14 +75,11 @@ func GenerateAppointmentsForUser(db *gorm.DB, user p_users.User, count int) {
 			if overlappingCount == 0 {
 				break
 			}
-			// If overlap, shift by 30 minutes
 			apptDate = apptDate.Add(30 * time.Minute)
 		}
 
 		name := AppointmentNames[rand.Intn(len(AppointmentNames))]
 		location := Locations[rand.Intn(len(Locations))]
-
-		// Random phone number (US format)
 		phone := fmt.Sprintf("(%03d) %03d-%04d", rand.Intn(800)+200, rand.Intn(900)+100, rand.Intn(10000))
 
 		remarks := ""
@@ -86,12 +92,25 @@ func GenerateAppointmentsForUser(db *gorm.DB, user p_users.User, count int) {
 			extraInfo = "Client prefers formal tone. Mention their recent project."
 		}
 
-		appointment := Appointment{
+		addr := location
+		ph := phone
+		clientRemarks := remarks
+		client := p_totschool_clients.Client{
 			CreatedByID: user.ID,
 			Name:        name,
-			Location:    location,
+			Address:     &addr,
+			Phone:       &ph,
+			Remarks:     &clientRemarks,
+		}
+		if err := gorm.G[p_totschool_clients.Client](db).Create(context.Background(), &client); err != nil {
+			continue
+		}
+
+		appointment := Appointment{
+			CreatedByID: user.ID,
+			ClientID:    client.ID,
 			Datetime:    apptDate,
-			Phone:       phone,
+			Status:      appointmentStatusForDatetime(apptDate),
 			Remarks:     remarks,
 			ExtraInfo:   extraInfo,
 		}
@@ -111,9 +130,7 @@ func pluginGenerators() lamu.PluginFeatures[lamu.Generator] {
 							return err
 						}
 
-						// Generate appointments for each user
 						for _, user := range users {
-							// Base number of appointments + some randomness
 							count := 10 + rand.Intn(15)
 							GenerateAppointmentsForUser(db, user, count)
 						}

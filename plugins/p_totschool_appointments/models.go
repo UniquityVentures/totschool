@@ -7,33 +7,36 @@ import (
 	"github.com/UniquityVentures/lamu/lamu"
 	"github.com/UniquityVentures/lamu/plugins/p_users"
 	"github.com/UniquityVentures/lamu/registry"
+	"github.com/UniquityVentures/totschool/plugins/p_totschool_clients"
 	"gorm.io/gorm"
 )
 
 type Appointment struct {
 	gorm.Model
-	CreatedByID     uint         `gorm:"notnull"`
-	CreatedBy       p_users.User `gorm:"foreignKey:CreatedByID"`
-	Name            string       `gorm:"size:250;notnull"`
-	Location        string       `gorm:"type:text"`
-	Datetime        time.Time    `gorm:"notnull"`
-	Phone           string       `gorm:"size:20"`
-	Remarks         string       `gorm:"type:text"`
-	ExtraInfo       string       `gorm:"type:text"`
-	GeneratedLetter string       `gorm:"type:text"`
-	GenerationID    *int         // non-nil while AI generation is in progress
+	CreatedByID     uint                        `gorm:"notnull"`
+	CreatedBy       p_users.User                `gorm:"foreignKey:CreatedByID"`
+	ClientID        uint                        `gorm:"notnull"`
+	Client          p_totschool_clients.Client  `gorm:"foreignKey:ClientID"`
+	Datetime        time.Time                   `gorm:"notnull"`
+	Status          AppointmentStatus           `gorm:"type:appointment_status;notnull"`
+	Remarks         string                      `gorm:"type:text"`
+	ExtraInfo       string                      `gorm:"type:text"`
+	GeneratedLetter string                      `gorm:"type:text"`
+	GenerationID    *int                        // non-nil while AI generation is in progress
 }
 
 func (a *Appointment) GetOverlappingAppointments(db *gorm.DB) []Appointment {
 	if a.CreatedByID == 0 || a.Datetime.IsZero() {
 		return nil
 	}
-	results, err := gorm.G[Appointment](db).Where("created_by_id = ? AND datetime >= ? AND datetime <= ? AND id != ?",
-		a.CreatedByID,
-		a.Datetime.Add(-25*time.Minute),
-		a.Datetime.Add(25*time.Minute),
-		a.ID,
-	).Find(context.Background())
+	results, err := gorm.G[Appointment](db).
+		Preload("Client", nil).
+		Where("created_by_id = ? AND datetime >= ? AND datetime <= ? AND id != ?",
+			a.CreatedByID,
+			a.Datetime.Add(-25*time.Minute),
+			a.Datetime.Add(25*time.Minute),
+			a.ID,
+		).Find(context.Background())
 	if err != nil {
 		return nil
 	}
@@ -78,5 +81,8 @@ func pluginDBInitHooks() lamu.PluginFeatures[lamu.DBInitHook] {
 }
 
 func init() {
-	lamu.RegistryAdmin.Register("p_totschool_appointments.Appointment", lamu.AdminPanel[Appointment]{SearchField: "Name"})
+	lamu.RegistryAdmin.Register("p_totschool_appointments.Appointment", lamu.AdminPanel[Appointment]{
+		SearchField: "Remarks",
+		Preload:     []string{"Client"},
+	})
 }

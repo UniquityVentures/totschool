@@ -47,7 +47,7 @@ func (AppointmentDetailCtxLayer) Next(_ views.View, next http.Handler) http.Hand
 			for _, o := range overlapping {
 				overlapList = append(overlapList, map[string]any{
 					"ID":   o.ID,
-					"Name": o.Name,
+					"Name": o.Client.Name,
 					"Date": o.Datetime,
 				})
 			}
@@ -87,7 +87,7 @@ func generateHandler(v *views.View) http.Handler {
 		}
 		user := p_users.UserFromContext(r.Context(), "appointments.generateHandler")
 
-		appointment, err := gorm.G[Appointment](db).Where("id = ?", idStr).First(r.Context())
+		appointment, err := gorm.G[Appointment](db).Preload("Client", nil).Where("id = ?", idStr).First(r.Context())
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -136,7 +136,7 @@ func aiEditFormHandler(v *views.View) http.Handler {
 			return
 		}
 
-		appointment, err := gorm.G[Appointment](db).Where("id = ?", idStr).First(r.Context())
+		appointment, err := gorm.G[Appointment](db).Preload("Client", nil).Where("id = ?", idStr).First(r.Context())
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -211,9 +211,27 @@ func (appointmentListQueryPatcher) Patch(_ views.View, r *http.Request, query go
 		if raw, exists := get["Date"]; exists && raw != nil {
 			query = applyDateFilterChain(raw, query)
 		}
+		if raw, exists := get["Status"]; exists && raw != nil {
+			switch s := raw.(type) {
+			case AppointmentStatus:
+				if s != "" {
+					query = query.Where("status = ?", s)
+				}
+			case string:
+				if s != "" {
+					query = query.Where("status = ?", s)
+				}
+			}
+		}
 	}
 
 	return query
+}
+
+func appointmentPreloadPatchers() views.QueryPatchers[Appointment] {
+	return views.QueryPatchers[Appointment]{
+		{Key: "appointments.preload_client", Value: views.QueryPatcherPreload[Appointment]{Fields: []string{"Client"}}},
+	}
 }
 
 type appointmentTimelineQueryPatcher struct{}
@@ -258,17 +276,16 @@ func applyDateFilterChain(raw any, query gorm.ChainInterface[Appointment]) gorm.
 }
 
 func pluginViews() lamu.PluginFeatures[*views.View] {
-	return lamu.PluginFeatures[*views.View]{
-		Entries: []registry.Pair[string, *views.View]{
+	return pluginViewsWithPatches([]registry.Pair[string, *views.View]{
 			{
 				Key: "appointments.ListView",
 				Value: lamu.GetPageView("appointments.AppointmentTable").
 					WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
 					WithLayer("appointments.list", views.LayerList[Appointment]{
 						Key: getters.Static("appointments"),
-						QueryPatchers: views.QueryPatchers[Appointment]{
-							{Key: "appointments.list", Value: appointmentListQueryPatcher{}},
-						},
+						QueryPatchers: append(appointmentPreloadPatchers(), registry.Pair[string, views.QueryPatcher[Appointment]]{
+							Key: "appointments.list", Value: appointmentListQueryPatcher{},
+						}),
 					}),
 			},
 			{
@@ -276,8 +293,9 @@ func pluginViews() lamu.PluginFeatures[*views.View] {
 				Value: lamu.GetPageView("appointments.AppointmentDetail").
 					WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
 					WithLayer("appointments.detail", views.LayerDetail[Appointment]{
-						Key:          getters.Static("appointment"),
-						PathParamKey: getters.Static("id"),
+						Key:           getters.Static("appointment"),
+						PathParamKey:  getters.Static("id"),
+						QueryPatchers: appointmentPreloadPatchers(),
 					}).
 					WithLayer("appointments.detail_ctx", AppointmentDetailCtxLayer{}),
 			},
@@ -285,10 +303,9 @@ func pluginViews() lamu.PluginFeatures[*views.View] {
 				Key: "appointments.CreateView",
 				Value: lamu.GetPageView("appointments.AppointmentCreateForm").
 					WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+					WithLayer("appointments.create_query_defaults", appointmentCreateQueryDefaultsLayer{}).
 					WithLayer("appointments.create", views.LayerCreate[Appointment]{
-						SuccessURL: lamu.RoutePath("appointments.DetailRoute", map[string]getters.Getter[any]{
-							"id": getters.Any(getters.Key[uint]("$id")),
-						}),
+						SuccessURL: appointmentCreateSuccessURL,
 						FormPatchers: views.FormPatchers{
 							{Key: "appointments.form", Value: appointmentFormCreatedByPatcher{}},
 						},
@@ -299,14 +316,13 @@ func pluginViews() lamu.PluginFeatures[*views.View] {
 				Value: lamu.GetPageView("appointments.AppointmentUpdateForm").
 					WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
 					WithLayer("appointments.detail", views.LayerDetail[Appointment]{
-						Key:          getters.Static("appointment"),
-						PathParamKey: getters.Static("id"),
+						Key:           getters.Static("appointment"),
+						PathParamKey:  getters.Static("id"),
+						QueryPatchers: appointmentPreloadPatchers(),
 					}).
 					WithLayer("appointments.update", views.LayerUpdate[Appointment]{
-						Key: getters.Static("appointment"),
-						SuccessURL: lamu.RoutePath("appointments.DetailRoute", map[string]getters.Getter[any]{
-							"id": getters.Any(getters.Key[uint]("appointment.ID")),
-						}),
+						Key:        getters.Static("appointment"),
+						SuccessURL: appointmentUpdateSuccessURL,
 						FormPatchers: views.FormPatchers{
 							{Key: "appointments.form", Value: appointmentFormCreatedByPatcher{}},
 						},
@@ -317,12 +333,13 @@ func pluginViews() lamu.PluginFeatures[*views.View] {
 				Value: lamu.GetPageView("appointments.AppointmentDeleteForm").
 					WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
 					WithLayer("appointments.detail", views.LayerDetail[Appointment]{
-						Key:          getters.Static("appointment"),
-						PathParamKey: getters.Static("id"),
+						Key:           getters.Static("appointment"),
+						PathParamKey:  getters.Static("id"),
+						QueryPatchers: appointmentPreloadPatchers(),
 					}).
 					WithLayer("appointments.delete", views.LayerDelete[Appointment]{
 						Key:        getters.Static("appointment"),
-						SuccessURL: lamu.RoutePath("appointments.ListRoute", nil),
+						SuccessURL: appointmentDeleteSuccessURL,
 					}),
 			},
 			{
@@ -366,7 +383,16 @@ func pluginViews() lamu.PluginFeatures[*views.View] {
 				Value: lamu.GetPageView("appointments.AppointmentSelectionTable").
 					WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
 					WithLayer("appointments.select_list", views.LayerList[Appointment]{
-						Key: getters.Static("appointments"),
+						Key:           getters.Static("appointments"),
+						QueryPatchers: appointmentPreloadPatchers(),
+					}),
+			},
+			{
+				Key: "appointments.UserSelectView",
+				Value: lamu.GetPageView("appointments.UserSelectionTable").
+					WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+					WithLayer("appointments.user_select", views.LayerList[p_users.User]{
+						Key: getters.Static("users"),
 					}),
 			},
 			{
@@ -375,12 +401,11 @@ func pluginViews() lamu.PluginFeatures[*views.View] {
 					WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
 					WithLayer("appointments.timeline", views.LayerList[Appointment]{
 						Key: getters.Static("appointments"),
-						QueryPatchers: views.QueryPatchers[Appointment]{
-							{Key: "appointments.timeline", Value: appointmentTimelineQueryPatcher{}},
-							{Key: "appointments.timeline_order", Value: views.QueryPatcherOrderBy[Appointment]{Order: "datetime ASC"}},
-						},
+						QueryPatchers: append(appointmentPreloadPatchers(),
+							registry.Pair[string, views.QueryPatcher[Appointment]]{Key: "appointments.timeline", Value: appointmentTimelineQueryPatcher{}},
+							registry.Pair[string, views.QueryPatcher[Appointment]]{Key: "appointments.timeline_order", Value: views.QueryPatcherOrderBy[Appointment]{Order: "datetime ASC"}},
+						),
 					}),
 			},
-		},
-	}
+	})
 }

@@ -7,36 +7,43 @@ import (
 	"github.com/UniquityVentures/lamu/getters"
 	"github.com/UniquityVentures/lamu/lamu"
 	"github.com/UniquityVentures/lamu/registry"
+	"github.com/UniquityVentures/totschool/plugins/p_totschool_clients"
 )
 
 func appointmentFormFields() []components.PageInterface {
 	return []components.PageInterface{
 		components.ContainerError{
-			Error: getters.Key[error]("$error.Name"),
+			Error: getters.Key[error]("$error.ClientID"),
 			Children: []components.PageInterface{
-				components.InputText{Label: "Name", Name: "Name", Required: true, Getter: getters.Key[string]("$in.Name")},
+				components.InputForeignKey[p_totschool_clients.Client]{
+					Name:        "ClientID",
+					Label:       "Client",
+					Url:         lamu.RoutePath("clients.SelectRoute", nil),
+					Display:     getters.Key[string]("$in.Name"),
+					Placeholder: "Select a client...",
+					Required:    true,
+					Getter:      getters.Association[p_totschool_clients.Client](getters.Key[uint]("$in.ClientID")),
+				},
 			},
 		},
 		components.ContainerError{
-			Error: getters.Key[error]("$error.Location"),
+			Error: getters.Key[error]("$error.Datetime"),
 			Children: []components.PageInterface{
-				components.InputTextarea{Label: "Location", Name: "Location", Required: true, Getter: getters.Key[string]("$in.Location"), Rows: 2},
+				components.InputDatetime{Label: "Date & Time", Name: "Datetime", Required: true, Getter: getters.Key[time.Time]("$in.Datetime")},
 			},
 		},
-		components.ContainerRow{Classes: "grid grid-cols-1 gap-1 md:grid-cols-2", Children: []components.PageInterface{
-			components.ContainerError{
-				Error: getters.Key[error]("$error.Phone"),
-				Children: []components.PageInterface{
-					components.InputPhone{Label: "Phone", Name: "Phone", Required: true, Getter: getters.Key[string]("$in.Phone")},
+		components.ContainerError{
+			Error: getters.Key[error]("$error.Status"),
+			Children: []components.PageInterface{
+				components.InputSelect[AppointmentStatus]{
+					Name:     "Status",
+					Label:    "Status",
+					Required: true,
+					Choices:  getters.Static(AppointmentStatusChoices),
+					Getter:   appointmentStatusSelectGetter("$in.Status"),
 				},
 			},
-			components.ContainerError{
-				Error: getters.Key[error]("$error.Datetime"),
-				Children: []components.PageInterface{
-					components.InputDatetime{Label: "Date & Time", Name: "Datetime", Required: true, Getter: getters.Key[time.Time]("$in.Datetime")},
-				},
-			},
-		}},
+		},
 		components.ContainerError{
 			Error: getters.Key[error]("$error.Remarks"),
 			Children: []components.PageInterface{
@@ -53,58 +60,47 @@ func appointmentFormFields() []components.PageInterface {
 }
 
 func registerForms() []registry.Pair[string, components.PageInterface] {
+	createFormName := getters.Static("appointments.AppointmentCreateForm")
+	updateFormName := getters.Static("appointments.AppointmentUpdateForm")
+	deleteFormName := getters.Static("appointments.AppointmentDeleteForm")
 	return []registry.Pair[string, components.PageInterface]{
-		{Key: "appointments.AppointmentCreateForm", Value: components.ShellScaffold{
-			Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "appointments.AppointmentMenu"}},
+		{Key: "appointments.AppointmentCreateForm", Value: components.Modal{
+			UID: "appointment-create-modal",
 			Children: []components.PageInterface{
-				&components.FormListenBoostedPost{
-					Name:      getters.Static("appointments.AppointmentCreateForm"),
-					ActionURL: lamu.RoutePath("appointments.CreateRoute", nil),
-					Children: []components.PageInterface{
-						components.FormComponent[Appointment]{
-							Attr: getters.FormBubbling(getters.Static("appointments.AppointmentCreateForm")),
-
-							Title:          "Create Appointment",
-							Subtitle:       "Create a new appointment",
-							ChildrenInput:  appointmentFormFields(),
-							ChildrenAction: []components.PageInterface{components.ButtonSubmit{Label: "Save Appointment"}},
-						},
-					},
+				components.FormComponent[Appointment]{
+					Attr:           getters.FormBubbling(createFormName),
+					Title:          "Create Appointment",
+					Subtitle:       "Create a new appointment",
+					ChildrenInput:  appointmentFormFields(),
+					ChildrenAction: []components.PageInterface{components.ButtonSubmit{Label: "Save Appointment"}},
 				},
 			},
 		}},
-		{Key: "appointments.AppointmentUpdateForm", Value: components.ShellScaffold{
-			Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "appointments.AppointmentDetailMenu"}},
+		{Key: "appointments.AppointmentUpdateForm", Value: components.Modal{
+			UID: "appointment-update-modal",
 			Children: []components.PageInterface{
-				&components.FormListenBoostedPost{
-					Name:      getters.Static("appointments.AppointmentUpdateForm"),
-					ActionURL: lamu.RoutePath("appointments.UpdateRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("appointment.ID"))}),
-					Children: []components.PageInterface{
-						components.FormComponent[Appointment]{
-							Getter: getters.Key[Appointment]("appointment"),
-							Attr:   getters.FormBubbling(getters.Static("appointments.AppointmentUpdateForm")),
-
-							Title:         "Edit Appointment",
-							Subtitle:      "Update appointment details",
-							ChildrenInput: appointmentFormFields(),
-							ChildrenAction: []components.PageInterface{
+				components.FormComponent[Appointment]{
+					Getter:        getters.Key[Appointment]("appointment"),
+					Attr:          getters.FormBubbling(updateFormName),
+					Title:         "Edit Appointment",
+					Subtitle:      "Update appointment details",
+					ChildrenInput: appointmentFormFields(),
+					ChildrenAction: []components.PageInterface{
+						components.ContainerRow{
+							Classes: "flex flex-wrap justify-between gap-2 mt-2 items-center",
+							Children: []components.PageInterface{
 								components.ContainerRow{
-									Classes: "flex flex-wrap justify-between gap-2 mt-2 items-center",
+									Classes: "flex justify-end gap-2",
 									Children: []components.PageInterface{
-										components.ContainerRow{
-											Classes: "flex justify-end gap-2",
-											Children: []components.PageInterface{
-												components.ButtonSubmit{Label: "Save Appointment"},
-												components.ButtonModalForm{
-													Label:       "Delete",
-													Icon:        "trash",
-													Name:        getters.Static("appointments.AppointmentDeleteForm"),
-													Url:         lamu.RoutePath("appointments.DeleteRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("appointment.ID"))}),
-													FormPostURL: lamu.RoutePath("appointments.DeleteRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("appointment.ID"))}),
-													ModalUID:    "appointment-delete-modal",
-													Classes:     "btn-error",
-												},
-											},
+										components.ButtonSubmit{Label: "Save Appointment"},
+										components.ButtonModalForm{
+											Label:       "Delete",
+											Icon:        "trash",
+											Name:        deleteFormName,
+											Url:         lamu.RoutePath("appointments.DeleteRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("appointment.ID"))}),
+											FormPostURL: lamu.RoutePath("appointments.DeleteRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("appointment.ID"))}),
+											ModalUID:    "appointment-delete-modal",
+											Classes:     "btn-error",
 										},
 									},
 								},

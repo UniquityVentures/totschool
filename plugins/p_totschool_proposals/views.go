@@ -29,14 +29,19 @@ func proposalDB(r *http.Request, op string) *gorm.DB {
 	return db
 }
 
-type proposalQueryPatcher struct{}
-
-func (proposalQueryPatcher) Patch(_ views.View, r *http.Request, query gorm.ChainInterface[Proposal]) gorm.ChainInterface[Proposal] {
-	user, role := p_users.UserAndRoleFromContext(r.Context(), "proposalQueryPatcher")
+func scopeProposalsQueryToCurrentUser(r *http.Request, query gorm.ChainInterface[Proposal]) gorm.ChainInterface[Proposal] {
+	user, role := p_users.UserAndRoleFromContext(r.Context(), "scopeProposalsQueryToCurrentUser")
 	if user.IsSuperuser || role == "totschool_admin" {
 		return query
 	}
 	return query.Where("created_by_id = ?", user.ID)
+}
+
+type proposalUnassignedListQueryPatcher struct{}
+
+func (proposalUnassignedListQueryPatcher) Patch(_ views.View, r *http.Request, query gorm.ChainInterface[Proposal]) gorm.ChainInterface[Proposal] {
+	query = scopeProposalsQueryToCurrentUser(r, query)
+	return query.Where("client_id IS NULL")
 }
 
 // proposalDetailCtxLayer enriches the detail view context for a proposal.
@@ -508,14 +513,13 @@ func exportPdfHandler(v *views.View) http.Handler {
 }
 
 func pluginViews() lamu.PluginFeatures[*views.View] {
-	return lamu.PluginFeatures[*views.View]{
-		Entries: []registry.Pair[string, *views.View]{
+	return pluginViewsWithPatches([]registry.Pair[string, *views.View]{
 			{Key: "proposals.ListView", Value: lamu.GetPageView("proposals.ProposalTable").
 				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
 				WithLayer("proposals.list", views.LayerList[Proposal]{
 					Key: getters.Static("proposals"),
 					QueryPatchers: views.QueryPatchers[Proposal]{
-						{Key: "proposals.query", Value: proposalQueryPatcher{}},
+						{Key: "proposals.unassigned", Value: proposalUnassignedListQueryPatcher{}},
 					},
 				})},
 			{Key: "proposals.DetailView", Value: lamu.GetPageView("proposals.ProposalDetail").
@@ -527,10 +531,9 @@ func pluginViews() lamu.PluginFeatures[*views.View] {
 				WithLayer("proposals.detail_ctx", proposalDetailCtxLayer{})},
 			{Key: "proposals.CreateView", Value: lamu.GetPageView("proposals.ProposalCreateForm").
 				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("proposals.create_query_defaults", proposalCreateQueryDefaultsLayer{}).
 				WithLayer("proposals.create", views.LayerCreate[Proposal]{
-					SuccessURL: lamu.RoutePath("proposals.DetailRoute", map[string]getters.Getter[any]{
-						"id": getters.Any(getters.Key[uint]("$id")),
-					}),
+					SuccessURL: proposalCreateSuccessURL,
 					FormPatchers: views.FormPatchers{
 						{Key: "proposals.form", Value: proposalFormPatcher{}},
 					},
@@ -542,10 +545,8 @@ func pluginViews() lamu.PluginFeatures[*views.View] {
 					PathParamKey: getters.Static("id"),
 				}).
 				WithLayer("proposals.update", views.LayerUpdate[Proposal]{
-					Key: getters.Static("proposal"),
-					SuccessURL: lamu.RoutePath("proposals.DetailRoute", map[string]getters.Getter[any]{
-						"id": getters.Any(getters.Key[uint]("proposal.ID")),
-					}),
+					Key:        getters.Static("proposal"),
+					SuccessURL: proposalUpdateSuccessURL,
 					FormPatchers: views.FormPatchers{
 						{Key: "proposals.form", Value: proposalFormPatcher{}},
 					},
@@ -558,7 +559,7 @@ func pluginViews() lamu.PluginFeatures[*views.View] {
 				}).
 				WithLayer("proposals.delete", views.LayerDelete[Proposal]{
 					Key:        getters.Static("proposal"),
-					SuccessURL: lamu.RoutePath("proposals.ListRoute", nil),
+					SuccessURL: proposalDeleteSuccessURL,
 				})},
 			{Key: "proposals.GenerateView", Value: lamu.GetPageView("proposals.ProposalDetail").
 				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
@@ -596,6 +597,5 @@ func pluginViews() lamu.PluginFeatures[*views.View] {
 					Method:  http.MethodGet,
 					Handler: exportDocxHandler,
 				})},
-		},
-	}
+	})
 }

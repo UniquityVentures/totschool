@@ -2,10 +2,88 @@ package p_totschool_appointments
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"log/slog"
+	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/UniquityVentures/lamu/getters"
+	"github.com/UniquityVentures/lamu/lamu"
+	"github.com/UniquityVentures/lamu/registry"
+	"maragu.dev/gomponents"
 )
+
+func appointmentCreateSuccessURL(ctx context.Context) (string, error) {
+	if r, ok := ctx.Value("$request").(*http.Request); ok && requestReturnClient(r) {
+		if cid := r.URL.Query().Get("ClientID"); cid != "" {
+			if id64, err := strconv.ParseUint(cid, 10, 32); err == nil && id64 != 0 {
+				return lamu.RoutePath("clients.DetailRoute", map[string]getters.Getter[any]{
+					"id": getters.Any(getters.Static(uint(id64))),
+				})(ctx)
+			}
+		}
+		if clientID, err := getters.Key[uint]("$in.ClientID")(ctx); err == nil && clientID != 0 {
+			return lamu.RoutePath("clients.DetailRoute", map[string]getters.Getter[any]{
+				"id": getters.Any(getters.Static(clientID)),
+			})(ctx)
+		}
+	}
+	return lamu.RoutePath("appointments.DetailRoute", map[string]getters.Getter[any]{
+		"id": getters.Any(getters.Key[uint]("$id")),
+	})(ctx)
+}
+
+func appointmentUpdateSuccessURL(ctx context.Context) (string, error) {
+	if r, ok := ctx.Value("$request").(*http.Request); ok && requestReturnClient(r) {
+		return lamu.RoutePath("clients.DetailRoute", map[string]getters.Getter[any]{
+			"id": getters.Any(getters.Key[uint]("appointment.ClientID")),
+		})(ctx)
+	}
+	return lamu.RoutePath("appointments.DetailRoute", map[string]getters.Getter[any]{
+		"id": getters.Any(getters.Key[uint]("appointment.ID")),
+	})(ctx)
+}
+
+func appointmentTimelineDateGetter() getters.Getter[time.Time] {
+	return getters.IfOrElse(getters.Key[time.Time]("$get.Date"), func(ctx context.Context) (time.Time, error) {
+		return time.Now(), nil
+	})
+}
+
+// appointmentTimelineDateFilterAttr is a boosted GET form that reloads on Date change (no filter dropdown).
+func appointmentTimelineDateFilterAttr() getters.Getter[gomponents.Node] {
+	route := lamu.RoutePath("appointments.CardTimelineRoute", nil)
+	return func(ctx context.Context) (gomponents.Node, error) {
+		boosted, err := getters.FormBoostedGet(route)(ctx)
+		if err != nil {
+			return nil, err
+		}
+		url, err := route(ctx)
+		if err != nil {
+			return nil, err
+		}
+		urlLit, err := json.Marshal(url)
+		if err != nil {
+			return nil, err
+		}
+		changeScript := fmt.Sprintf(
+			`(function(evt){if(evt.target.name!=='Date')return;var f=evt.target.closest('form');if(!f)return;var m=f.closest('dialog.modal');var o={source:f,swap:'outerHTML',values:htmx.values(f),headers:{'HX-Boosted':'true'}};o.target=m||'body';htmx.ajax('GET',%s,o)})($event)`,
+			urlLit,
+		)
+		return gomponents.Group{boosted, gomponents.Attr("@change", changeScript)}, nil
+	}
+}
+
+func appointmentDeleteSuccessURL(ctx context.Context) (string, error) {
+	if r, ok := ctx.Value("$request").(*http.Request); ok && requestReturnClient(r) {
+		return lamu.RoutePath("clients.DetailRoute", map[string]getters.Getter[any]{
+			"id": getters.Any(getters.Key[uint]("appointment.ClientID")),
+		})(ctx)
+	}
+	return lamu.RoutePath("appointments.ListRoute", nil)(ctx)
+}
 
 func getterGenerated() getters.Getter[bool] {
 	return func(ctx context.Context) (bool, error) {
@@ -61,5 +139,74 @@ func getterIdleGeneration() getters.Getter[bool] {
 			return true, nil
 		}
 		return false, nil
+	}
+}
+
+func appointmentStatusSelectGetter(ctxKey string) getters.Getter[registry.Pair[AppointmentStatus, string]] {
+	return func(ctx context.Context) (registry.Pair[AppointmentStatus, string], error) {
+		status, err := getters.Key[AppointmentStatus](ctxKey)(ctx)
+		if err != nil {
+			return registry.Pair[AppointmentStatus, string]{}, err
+		}
+		if p, ok := registry.PairFromPairs(status, AppointmentStatusChoices); ok {
+			return p, nil
+		}
+		return registry.Pair[AppointmentStatus, string]{Key: status, Value: string(status)}, nil
+	}
+}
+
+func appointmentStatusLabelFromRow() getters.Getter[string] {
+	return func(ctx context.Context) (string, error) {
+		status, err := getters.Key[AppointmentStatus]("$row.Status")(ctx)
+		if err != nil {
+			return "", err
+		}
+		if p, ok := registry.PairFromPairs(status, AppointmentStatusChoices); ok {
+			return p.Value, nil
+		}
+		return string(status), nil
+	}
+}
+
+func appointmentStatusLabelFromIn() getters.Getter[string] {
+	return func(ctx context.Context) (string, error) {
+		status, err := getters.Key[AppointmentStatus]("$in.Status")(ctx)
+		if err != nil {
+			return "", err
+		}
+		if p, ok := registry.PairFromPairs(status, AppointmentStatusChoices); ok {
+			return p.Value, nil
+		}
+		return string(status), nil
+	}
+}
+
+func clientPhoneFromRow() getters.Getter[string] {
+	return func(ctx context.Context) (string, error) {
+		phone, err := getters.Key[*string]("$row.Client.Phone")(ctx)
+		if err == nil && phone != nil {
+			return *phone, nil
+		}
+		return "", nil
+	}
+}
+
+func clientAddressFromRow() getters.Getter[string] {
+	return func(ctx context.Context) (string, error) {
+		addr, err := getters.Key[*string]("$row.Client.Address")(ctx)
+		if err == nil && addr != nil {
+			return *addr, nil
+		}
+		return "", nil
+	}
+}
+
+func clientPhoneFromIn() getters.Getter[string] {
+	return func(ctx context.Context) (string, error) {
+		phone, err := getters.Key[*string]("$in.Client.Phone")(ctx)
+		if err == nil && phone != nil {
+			return *phone, nil
+		}
+		return "", nil
 	}
 }

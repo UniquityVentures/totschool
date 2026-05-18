@@ -5,11 +5,14 @@ go 1.26.1
 require (
 	github.com/UniquityVentures/lamu v0.4.10
 	github.com/UniquityVentures/lamu/plugins/p_users v0.4.10
+	github.com/UniquityVentures/totschool/plugins/p_totschool_clients v0.0.0
 	github.com/alnah/go-md2pdf v1.9.2
 	google.golang.org/genai v1.57.0
 	gorm.io/datatypes v1.2.7
 	gorm.io/gorm v1.31.1
 )
+
+replace github.com/UniquityVentures/totschool/plugins/p_totschool_clients => ../p_totschool_clients
 
 require (
 	charm.land/bubbles/v2 v2.0.0 // indirect

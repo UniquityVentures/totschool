@@ -8,6 +8,7 @@ import (
 	"github.com/UniquityVentures/lamu/lamu"
 	"github.com/UniquityVentures/lamu/plugins/p_users"
 	"github.com/UniquityVentures/lamu/registry"
+	"github.com/UniquityVentures/totschool/plugins/p_totschool_clients"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -39,9 +40,11 @@ var QUESTIONS = []string{
 
 type Proposal struct {
 	gorm.Model
-	CreatedByID      uint           `gorm:"notnull"`
-	CreatedBy        p_users.User   `gorm:"foreignKey:CreatedByID"`
-	Title            string         `gorm:"size:250;notnull"`
+	CreatedByID      uint                        `gorm:"notnull"`
+	CreatedBy        p_users.User                `gorm:"foreignKey:CreatedByID"`
+	ClientID         *uint                       `gorm:"index"`
+	Client           p_totschool_clients.Client  `gorm:"foreignKey:ClientID"`
+	Title            string                      `gorm:"size:250;notnull"`
 	Answers          datatypes.JSON // [{"question":"...","answer":"..."}, ...]
 	GeneratedContent string         `gorm:"type:text"`
 	GenerationID     *int           // non-nil while AI generation is in progress
