@@ -23,11 +23,11 @@ func GetPlugin() registry.Pair[string, lamu.Plugin] {
 			Icon:        "chart-bar",
 			URL:         u,
 			VerboseName: "Progress Tracker",
-			Views:       pluginViews,
-			Pages:       pluginPages,
-			Routes:      pluginRoutes,
-			Models:      pluginModels,
-			Migrations:  pluginMigrations,
+			Views:       lamu.PluginStages(pluginViews),
+			Pages:       lamu.PluginStages(pluginPages),
+			Routes:      lamu.PluginStages(pluginRoutes),
+			Models:      lamu.PluginStages(pluginModels),
+			Migrations:  lamu.PluginStages(pluginMigrations),
 		},
 	}
 }

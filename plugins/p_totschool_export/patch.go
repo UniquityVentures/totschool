@@ -80,8 +80,8 @@ func GetPlugin() registry.Pair[string, lamu.Plugin] {
 		Key: "p_totschool_export",
 		Value: lamu.Plugin{
 			Type:  lamu.PluginTypeAddon,
-			Pages: exportPagePatches,
-			Views: exportViewPatches,
+			Pages: lamu.PluginStages(exportPagePatches),
+			Views: lamu.PluginStages(exportViewPatches),
 		},
 	}
 }

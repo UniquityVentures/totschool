@@ -3,8 +3,8 @@ module github.com/UniquityVentures/totschool/plugins/p_totschool_proposals
 go 1.26.1
 
 require (
-	github.com/UniquityVentures/lamu v0.4.7
-	github.com/UniquityVentures/lamu/plugins/p_users v0.4.7
+	github.com/UniquityVentures/lamu v0.4.10
+	github.com/UniquityVentures/lamu/plugins/p_users v0.4.10
 	github.com/alnah/go-md2pdf v1.9.2
 	google.golang.org/genai v1.57.0
 	gorm.io/datatypes v1.2.7

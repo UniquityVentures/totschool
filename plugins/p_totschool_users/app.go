@@ -21,12 +21,12 @@ func GetPlugin() registry.Pair[string, lamu.Plugin] {
 	return registry.Pair[string, lamu.Plugin]{
 		Key: "p_totschool_users",
 		Value: lamu.Plugin{
-			Type:        lamu.PluginTypeAddon,
-			DBInitHooks: pluginDBInitHooks,
-			Migrations:  pluginMigrations,
-			Views: func() lamu.PluginFeatures[*views.View] {
+			Type: lamu.PluginTypeAddon,
+			DBInitHooks: lamu.PluginStages(pluginDBInitHooks),
+			Migrations:  lamu.PluginStages(pluginMigrations),
+			Views: lamu.PluginStages(func() lamu.PluginFeatures[*views.View] {
 				return lamu.PluginFeatures[*views.View]{Patches: patches}
-			},
+			}),
 		},
 	}
 }
