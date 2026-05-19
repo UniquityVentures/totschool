@@ -7,6 +7,7 @@ import (
 	"github.com/UniquityVentures/lamu/registry"
 
 	"github.com/UniquityVentures/lamu/plugins/p_dashboard"
+	"github.com/UniquityVentures/lamu/plugins/p_google_genai"
 	"github.com/UniquityVentures/lamu/plugins/p_livereloading"
 	"github.com/UniquityVentures/lamu/plugins/p_otp"
 	"github.com/UniquityVentures/lamu/plugins/p_pwa"
@@ -21,6 +22,7 @@ import (
 func main() {
 	plugins := []registry.Pair[string, lamu.Plugin]{
 		p_dashboard.GetPlugin(),
+		p_google_genai.GetPlugin(),
 		p_totschool_export.ExportPluginForTotschool(),
 		p_totschool_clients.GetPlugin(),
 		p_totschool_users.UsersPluginForTotschool(),
