@@ -13,16 +13,6 @@ import (
 
 func registerMenus() []registry.Pair[string, components.PageInterface] {
 	return []registry.Pair[string, components.PageInterface]{
-		{Key: "proposals.ProposalMenu", Value: components.SidebarMenu{
-			Title: getters.Static("Proposals"),
-			Back: &components.SidebarMenuItem{
-				Title: getters.Static("Back to All Apps"),
-				Url:   lamu.RoutePath("dashboard.AppsPage", nil),
-			},
-			Children: []components.PageInterface{
-				components.SidebarMenuItem{Title: getters.Static("Unassigned Proposals"), Url: lamu.RoutePath("proposals.ListRoute", nil)},
-			},
-		}},
 		{Key: "proposals.ProposalDetailMenu", Value: components.SidebarMenu{
 			Title: getters.Format("Proposal: %s", getters.Any(getters.Key[string]("proposal.Title"))),
 			Back: &components.SidebarMenuItem{
@@ -175,7 +165,7 @@ func registerForms() []registry.Pair[string, components.PageInterface] {
 
 func registerTable() []registry.Pair[string, components.PageInterface] {
 	return []registry.Pair[string, components.PageInterface]{{Key: "proposals.ProposalTable", Value: components.ShellScaffold{
-		Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "proposals.ProposalMenu"}},
+		Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "clients.ClientMenu"}},
 		Children: []components.PageInterface{
 			components.DataTable[Proposal]{
 				UID:      "proposal-table",

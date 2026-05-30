@@ -3,14 +3,27 @@ package p_totschool_appointments
 import (
 	"github.com/UniquityVentures/lamu/components"
 	"github.com/UniquityVentures/lamu/lamu"
+	"github.com/UniquityVentures/lamu/plugins/p_users"
 	"github.com/UniquityVentures/lamu/registry"
 	"github.com/UniquityVentures/lamu/views"
 )
+
+var appointmentListAdminRoles = []string{"totschool_admin", "superuser"}
 
 var (
 	pluginPagePatches []registry.Pair[string, func(components.PageInterface) components.PageInterface]
 	pluginViewPatches []registry.Pair[string, func(*views.View) *views.View]
 )
+
+func init() {
+	registerAppointmentListAdminPatch()
+}
+
+func registerAppointmentListAdminPatch() {
+	patchPluginView("appointments.ListView", func(v *views.View) *views.View {
+		return v.InsertLayerAfter("p_users.auth", "totschool_appointments.list_admin", p_users.RoleAuthorizationLayer{Roles: appointmentListAdminRoles})
+	})
+}
 
 func patchPluginPage(key string, patch func(components.PageInterface) components.PageInterface) {
 	pluginPagePatches = append(pluginPagePatches, registry.Pair[string, func(components.PageInterface) components.PageInterface]{

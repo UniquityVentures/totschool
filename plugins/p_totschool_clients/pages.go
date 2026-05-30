@@ -1,7 +1,7 @@
 package p_totschool_clients
 
 import (
-	"time"
+	"context"
 
 	"github.com/UniquityVentures/lamu/components"
 	"github.com/UniquityVentures/lamu/getters"
@@ -9,6 +9,8 @@ import (
 	"github.com/UniquityVentures/lamu/plugins/p_users"
 	"github.com/UniquityVentures/lamu/registry"
 )
+
+var clientAdminRoles = []string{"totschool_admin", "superuser"}
 
 func clientFormFields() []components.PageInterface {
 	return []components.PageInterface{
@@ -49,7 +51,13 @@ func registerMenus() []registry.Pair[string, components.PageInterface] {
 			},
 			Children: []components.PageInterface{
 				components.SidebarMenuItem{Title: getters.Static("All Clients"), Url: lamu.RoutePath("clients.ListRoute", nil)},
-				components.SidebarMenuItem{Title: getters.Static("Create Client"), Url: lamu.RoutePath("clients.CreateRoute", nil)},
+				components.SidebarMenuItem{Title: getters.Static("Appointments Timeline"), Url: lamu.RoutePath("appointments.CardTimelineRoute", nil)},
+				components.SidebarMenuItem{Title: getters.Static("Old Proposals"), Url: lamu.RoutePath("proposals.ListRoute", nil)},
+				components.SidebarMenuItem{
+					Page:  components.Page{Roles: []string{"totschool_admin", "superuser"}},
+					Title: getters.Static("All Appointments"),
+					Url:   lamu.RoutePath("appointments.ListRoute", nil),
+				},
 			},
 		}},
 		{Key: "clients.ClientDetailMenu", Value: components.SidebarMenu{
@@ -164,12 +172,17 @@ func registerTable() []registry.Pair[string, components.PageInterface] {
 						&components.TableButtonCreate{Link: lamu.RoutePath("clients.CreateRoute", nil)},
 					},
 					RowAttr: getters.RowAttrNavigate(lamu.RoutePath("clients.DetailRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("$row.ID"))})),
+					EnabledColumns: getters.Map(getters.Key[string]("$role"), func(_ context.Context, role string) (map[string]bool, error) {
+						if role == "totschool_admin" || role == "superuser" {
+							return nil, nil
+						}
+						return map[string]bool{"Name": true, "Address": true, "Phone": true}, nil
+					}),
 					Columns: []components.TableColumn{
 						{Label: "Name", Name: "Name", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$row.Name")}}},
 						{Label: "Address", Name: "Address", Children: []components.PageInterface{components.FieldText{Getter: getters.Deref(getters.Key[*string]("$row.Address"))}}},
 						{Label: "Phone", Name: "Phone", Children: []components.PageInterface{components.FieldPhone{Getter: getters.Deref(getters.Key[*string]("$row.Phone"))}}},
 						{Label: "Created By", Name: "CreatedBy", Children: []components.PageInterface{components.FieldText{Getter: getters.ForeignKey[p_users.User, uint, string](getters.Key[uint]("$row.CreatedByID"), "Name")}}},
-						{Label: "Created At", Name: "CreatedAt", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$row.CreatedAt")}}},
 					},
 				},
 			},
@@ -188,13 +201,14 @@ func registerDetail() []registry.Pair[string, components.PageInterface] {
 						components.ContainerColumn{
 							Page: components.Page{Key: "clients.ClientDetailContent"},
 							Children: []components.PageInterface{
-							components.FieldTitle{Getter: getters.Key[string]("$in.Name")},
-							components.LabelInline{Title: "Address", Children: []components.PageInterface{components.FieldText{Getter: getters.Deref(getters.Key[*string]("$in.Address"))}}},
-							components.LabelInline{Title: "Phone", Children: []components.PageInterface{components.FieldPhone{Getter: getters.Deref(getters.Key[*string]("$in.Phone"))}}},
-							components.LabelInline{Title: "Remarks", Children: []components.PageInterface{components.FieldText{Getter: getters.Deref(getters.Key[*string]("$in.Remarks"))}}},
-							components.LabelInline{Title: "Created By", Children: []components.PageInterface{components.FieldText{Getter: getters.ForeignKey[p_users.User, uint, string](getters.Key[uint]("$in.CreatedByID"), "Name")}}},
-							components.LabelInline{Title: "Created At", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$in.CreatedAt")}}},
-							components.LabelInline{Title: "Updated At", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$in.UpdatedAt")}}},
+								components.FieldTitle{Getter: getters.Key[string]("$in.Name")},
+								components.LabelInline{Title: "Address", Children: []components.PageInterface{components.FieldText{Getter: getters.Deref(getters.Key[*string]("$in.Address"))}}},
+								components.LabelInline{Title: "Phone", Children: []components.PageInterface{components.FieldPhone{Getter: getters.Deref(getters.Key[*string]("$in.Phone"))}}},
+								components.LabelInline{Title: "Remarks", Children: []components.PageInterface{components.FieldText{Getter: getters.Deref(getters.Key[*string]("$in.Remarks"))}}},
+								components.LabelInline{
+									Page:    components.Page{Roles: clientAdminRoles},
+									Title:   "Created By",
+									Children: []components.PageInterface{components.FieldText{Getter: getters.ForeignKey[p_users.User, uint, string](getters.Key[uint]("$in.CreatedByID"), "Name")}}},
 							},
 						},
 					},
@@ -225,9 +239,9 @@ func registerSelection() []registry.Pair[string, components.PageInterface] {
 			UID: "client-selection-modal",
 			Children: []components.PageInterface{
 				components.DataTable[Client]{
-					UID:     "client-selection-table",
-					Title:   "Select Client",
-					Data:    getters.Key[components.ObjectList[Client]]("clients"),
+					UID:   "client-selection-table",
+					Title: "Select Client",
+					Data:  getters.Key[components.ObjectList[Client]]("clients"),
 					RowAttr: getters.RowAttrSelectNamed(
 						getters.IfOrElse(getters.Key[string]("$get.target_input"), getters.Static("ClientID")),
 						getters.Key[uint]("$row.ID"),

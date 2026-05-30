@@ -75,7 +75,8 @@ func registerFilter() []registry.Pair[string, components.PageInterface] {
 func registerTable() []registry.Pair[string, components.PageInterface] {
 	return []registry.Pair[string, components.PageInterface]{
 		{Key: "appointments.AppointmentTable", Value: components.ShellScaffold{
-			Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "appointments.AppointmentMenu"}},
+			Page:    components.Page{Roles: []string{"totschool_admin", "superuser"}},
+			Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "clients.ClientMenu"}},
 			Children: []components.PageInterface{
 				components.DataTable[Appointment]{
 					UID:      "appointment-table",
@@ -144,7 +145,7 @@ func registerSelectionPages() []registry.Pair[string, components.PageInterface] 
 			},
 		}},
 		{Key: "appointments.AppointmentCardTimeline", Value: components.ShellScaffold{
-			Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "appointments.AppointmentMenu"}},
+			Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "clients.ClientMenu"}},
 			Children: []components.PageInterface{
 				components.FormComponent[Appointment]{
 					Classes: "max-w-xs mb-4",

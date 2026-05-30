@@ -11,11 +11,11 @@ import (
 
 // exportAppRoles: dashboard tile + HTTP views ([RoleAuthorizationLayer] still
 // allows IsSuperuser). AppsGrid skips role filter when $role is superuser.
-var exportAppRoles = []string{"admin"}
+var exportAppRoles = []string{"totschool_admin"}
 
 // exportMenuRoles: SidebarMenu uses components.Render ($role string); superuser
 // must appear here or sidebar stays empty while export routes still work.
-var exportMenuRoles = []string{"admin", "superuser"}
+var exportMenuRoles = []string{"totschool_admin", "superuser"}
 
 var exportRoleLayer = p_users.RoleAuthorizationLayer{Roles: exportAppRoles}
 
