@@ -79,10 +79,11 @@ func registerTable() []registry.Pair[string, components.PageInterface] {
 			Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "clients.ClientMenu"}},
 			Children: []components.PageInterface{
 				components.DataTable[Appointment]{
-					UID:      "appointment-table",
-					Data:     getters.Key[components.ObjectList[Appointment]]("appointments"),
-					Title:    "Appointments",
-					Subtitle: "List of appointments",
+					UID:         "appointment-table",
+					Data:        getters.Key[components.ObjectList[Appointment]]("appointments"),
+					Title:       "Appointments",
+					Subtitle:    "List of appointments",
+					DefaultView: "Grid",
 					Actions: []components.PageInterface{
 						&components.TableButtonFilter{Child: lamu.DynamicPage{Name: "appointments.AppointmentFilter"}},
 					},
@@ -92,10 +93,8 @@ func registerTable() []registry.Pair[string, components.PageInterface] {
 						{Label: "Phone", Name: "Phone", Children: []components.PageInterface{components.FieldPhone{Getter: clientPhoneFromRow()}}},
 						{Label: "Address", Name: "Address", Children: []components.PageInterface{components.FieldText{Getter: clientAddressFromRow()}}},
 						{Label: "Status", Name: "Status", Children: []components.PageInterface{components.FieldText{Getter: appointmentStatusLabelFromRow()}}},
-						{Label: "Location", Name: "Location", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$row.Location")}}},
 						{Label: "Date & Time", Name: "Datetime", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$row.Datetime")}}},
 						{Label: "Created By", Name: "CreatedBy", Children: []components.PageInterface{components.FieldText{Getter: getters.ForeignKey[p_users.User, uint, string](getters.Key[uint]("$row.CreatedByID"), "Name")}}},
-						{Label: "Created At", Name: "CreatedAt", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$row.CreatedAt")}}},
 					},
 				},
 			},

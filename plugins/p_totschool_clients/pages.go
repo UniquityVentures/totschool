@@ -163,10 +163,11 @@ func registerTable() []registry.Pair[string, components.PageInterface] {
 			Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "clients.ClientMenu"}},
 			Children: []components.PageInterface{
 				components.DataTable[Client]{
-					UID:      "client-table",
-					Data:     getters.Key[components.ObjectList[Client]]("clients"),
-					Title:    "Clients",
-					Subtitle: "List of clients",
+					UID:         "client-table",
+					Data:        getters.Key[components.ObjectList[Client]]("clients"),
+					Title:       "Clients",
+					Subtitle:    "List of clients",
+					DefaultView: "Grid",
 					Actions: []components.PageInterface{
 						&components.TableButtonFilter{Child: lamu.DynamicPage{Name: "clients.ClientFilter"}},
 						&components.TableButtonCreate{Link: lamu.RoutePath("clients.CreateRoute", nil)},
@@ -206,9 +207,10 @@ func registerDetail() []registry.Pair[string, components.PageInterface] {
 								components.LabelInline{Title: "Phone", Children: []components.PageInterface{components.FieldPhone{Getter: getters.Deref(getters.Key[*string]("$in.Phone"))}}},
 								components.LabelInline{Title: "Remarks", Children: []components.PageInterface{components.FieldText{Getter: getters.Deref(getters.Key[*string]("$in.Remarks"))}}},
 								components.LabelInline{
-									Page:    components.Page{Roles: clientAdminRoles},
-									Title:   "Created By",
-									Children: []components.PageInterface{components.FieldText{Getter: getters.ForeignKey[p_users.User, uint, string](getters.Key[uint]("$in.CreatedByID"), "Name")}}},
+									Page:     components.Page{Roles: clientAdminRoles},
+									Title:    "Created By",
+									Children: []components.PageInterface{components.FieldText{Getter: getters.ForeignKey[p_users.User, uint, string](getters.Key[uint]("$in.CreatedByID"), "Name")}},
+								},
 							},
 						},
 					},
