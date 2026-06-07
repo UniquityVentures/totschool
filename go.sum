@@ -18,8 +18,8 @@ github.com/BurntSushi/toml v1.6.0 h1:dRaEfpa2VI55EwlIW72hMRHdWouJeRF7TPYhI+AUQjk
 github.com/BurntSushi/toml v1.6.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
 github.com/MakeNowJust/heredoc v1.0.0 h1:cXCdzVdstXyiTqTvfqk9SDHpKNjxuom+DOlyEeQ4pzQ=
 github.com/MakeNowJust/heredoc v1.0.0/go.mod h1:mG5amYoWBHf8vpLOuehzbGGw0EHxpZZ6lCpQ4fNJ8LE=
-github.com/UniquityVentures/lamu v0.4.11 h1:qZel91m7DVAVD39xQR+ro/BDjHvTD6HunZKbp77SwKI=
-github.com/UniquityVentures/lamu v0.4.11/go.mod h1:3/1olJuBIGRCMESBnm/M0bpXf+zLmHtOFGqpw2SO5vo=
+github.com/UniquityVentures/lamu v0.4.12 h1:OvCGoS+2Zge2sgjTcwvJ1f5U+sRc7SpJKIh90RgcVDk=
+github.com/UniquityVentures/lamu v0.4.12/go.mod h1:3/1olJuBIGRCMESBnm/M0bpXf+zLmHtOFGqpw2SO5vo=
 github.com/UniquityVentures/lamu/plugins/p_dashboard v0.4.11 h1:nvfKcRENpXxebfcihPF07N/2lPa/9SOYMpAQeKE0wNY=
 github.com/UniquityVentures/lamu/plugins/p_dashboard v0.4.11/go.mod h1:kIBFmbkIZBBdUo+/MTIDZDY5HWIWUu02wT3VIPPTWik=
 github.com/UniquityVentures/lamu/plugins/p_export v0.4.11 h1:zyZ+CeNH0Da18qz9ke05L2rG7RPteA6E1RqQarXf1Wc=
@@ -28,8 +28,6 @@ github.com/UniquityVentures/lamu/plugins/p_google_genai v0.4.11 h1:a3NH0IBYSScLH
 github.com/UniquityVentures/lamu/plugins/p_google_genai v0.4.11/go.mod h1:Pb9Z2WMa/T7DQ65jjdnk5X0sPDgmmJ9YOEPhgF2waFw=
 github.com/UniquityVentures/lamu/plugins/p_livereloading v0.4.11 h1:X7O9oKzGVkfC5SfXnqhzfr3o2HaBnmBHVAvm5wuCAtM=
 github.com/UniquityVentures/lamu/plugins/p_livereloading v0.4.11/go.mod h1:WgRG060+RKNNKrzNy2pNr2WXvtX+aVcD09r+1GCT6+g=
-github.com/UniquityVentures/lamu/plugins/p_otp v0.4.11 h1:dZcJ4nhLjC46Hlb/0zpdJj8ug14Whbt3YGkhB4Cbiv4=
-github.com/UniquityVentures/lamu/plugins/p_otp v0.4.11/go.mod h1:mOhIQoIfYhjygYS3V/dgZ/hrUxx+XwTn3LuC+I42gdE=
 github.com/UniquityVentures/lamu/plugins/p_pwa v0.4.11 h1:ai1xbnHeNjEesA/YpuY3qv3sFmT7xORJ+rNzx/R2wbs=
 github.com/UniquityVentures/lamu/plugins/p_pwa v0.4.11/go.mod h1:YEOJROrelxPIhLCi8wMigHkoDM0EvOHOxLV9gh8zBcc=
 github.com/UniquityVentures/lamu/plugins/p_users v0.4.11 h1:WjwNrkDcBomkeh4kfXcuOaeV+4UsiJs2uj3gC/kIjBM=
@@ -38,6 +36,8 @@ github.com/UniquityVentures/totschool/plugins/p_totschool_appointments v0.0.0-20
 github.com/UniquityVentures/totschool/plugins/p_totschool_appointments v0.0.0-20260519014749-5ea2917068a8/go.mod h1:KSqq7rzFTuKyxCrA1aQV0+0f62t/WlRtBageQN66vuA=
 github.com/UniquityVentures/totschool/plugins/p_totschool_clients v0.0.0-20260519014749-5ea2917068a8 h1:Puqrl0OjmAVL8MY1gEpsqVy5/K9UZxkmQezsfFUYTlM=
 github.com/UniquityVentures/totschool/plugins/p_totschool_clients v0.0.0-20260519014749-5ea2917068a8/go.mod h1:qSCWUrKJhhdxNpUKhsk3g7CUhBiEOL1myujJdmGjB8o=
+github.com/UniquityVentures/totschool/plugins/p_totschool_dashboard v0.0.0-20260607034441-badf929c56a7 h1:cyCgV9zYO22ax/Nc67kYNUBYsxEXNfIS60tJty/hDBE=
+github.com/UniquityVentures/totschool/plugins/p_totschool_dashboard v0.0.0-20260607034441-badf929c56a7/go.mod h1:LE1rENDFrh0ZK41XuHvVSBv3hwl5g0qG5MXOC80RJzA=
 github.com/UniquityVentures/totschool/plugins/p_totschool_export v0.0.0-20260519014749-5ea2917068a8 h1:zkcfIu3pXdGFDos7/3A1cZk28DVYtrg7gNMAW6VhKs0=
 github.com/UniquityVentures/totschool/plugins/p_totschool_export v0.0.0-20260519014749-5ea2917068a8/go.mod h1:niu2TCWu3BvzVJqJG/oPgdg8P6BikICIy4KodAnWErs=
 github.com/UniquityVentures/totschool/plugins/p_totschool_proposals v0.0.0-20260519014749-5ea2917068a8 h1:ZyHENphlXj9RemxiTjzJr8LG3z6FOLJjdm+4FVSPRO8=

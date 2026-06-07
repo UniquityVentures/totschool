@@ -12,6 +12,20 @@ import (
 
 var clientAdminRoles = []string{"totschool_admin", "superuser"}
 
+func clientStatusField() components.PageInterface {
+	return components.ContainerError{
+		Error: getters.Key[error]("$error.Status"),
+		Children: []components.PageInterface{
+			components.InputSelect[ClientStatus]{
+				Label:   "Status",
+				Name:    "Status",
+				Choices: getters.Static(ClientStatusChoices),
+				Getter:  clientStatusSelectGetter("$in.Status"),
+			},
+		},
+	}
+}
+
 func clientFormFields() []components.PageInterface {
 	return []components.PageInterface{
 		components.ContainerError{
@@ -80,6 +94,17 @@ func registerFilter() []registry.Pair[string, components.PageInterface] {
 			Attr: getters.FormBoostedGet(lamu.RoutePath("clients.ListRoute", nil)),
 			ChildrenInput: []components.PageInterface{
 				components.InputText{Label: "Name", Name: "Name", Getter: getters.Key[string]("$get.Name")},
+				components.ContainerError{
+					Error: getters.Key[error]("$error.Status"),
+					Children: []components.PageInterface{
+						components.InputSelect[ClientStatus]{
+							Label:   "Status",
+							Name:    "Status",
+							Choices: getters.Static(ClientStatusChoices),
+							Getter:  clientStatusSelectGetter("$get.Status"),
+						},
+					},
+				},
 			},
 			ChildrenAction: []components.PageInterface{
 				components.ContainerRow{Classes: "flex gap-2", Children: []components.PageInterface{
@@ -126,7 +151,7 @@ func registerForms() []registry.Pair[string, components.PageInterface] {
 							Attr:          getters.FormBubbling(updateFormName),
 							Title:         "Edit Client",
 							Subtitle:      "Update client details",
-							ChildrenInput: clientFormFields(),
+							ChildrenInput: append(clientFormFields(), clientStatusField()),
 							ChildrenAction: []components.PageInterface{
 								components.ContainerRow{
 									Classes: "flex flex-wrap justify-between gap-2 mt-2 items-center",
@@ -183,6 +208,7 @@ func registerTable() []registry.Pair[string, components.PageInterface] {
 						{Label: "Name", Name: "Name", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$row.Name")}}},
 						{Label: "Address", Name: "Address", Children: []components.PageInterface{components.FieldText{Getter: getters.Deref(getters.Key[*string]("$row.Address"))}}},
 						{Label: "Phone", Name: "Phone", Children: []components.PageInterface{components.FieldPhone{Getter: getters.Deref(getters.Key[*string]("$row.Phone"))}}},
+						{Label: "Status", Name: "Status", Children: []components.PageInterface{components.FieldText{Getter: clientStatusLabelFromRow()}}},
 						{Label: "Created By", Name: "CreatedBy", Children: []components.PageInterface{components.FieldText{Getter: getters.ForeignKey[p_users.User, uint, string](getters.Key[uint]("$row.CreatedByID"), "Name")}}},
 					},
 				},
@@ -205,6 +231,7 @@ func registerDetail() []registry.Pair[string, components.PageInterface] {
 								components.FieldTitle{Getter: getters.Key[string]("$in.Name")},
 								components.LabelInline{Title: "Address", Children: []components.PageInterface{components.FieldText{Getter: getters.Deref(getters.Key[*string]("$in.Address"))}}},
 								components.LabelInline{Title: "Phone", Children: []components.PageInterface{components.FieldPhone{Getter: getters.Deref(getters.Key[*string]("$in.Phone"))}}},
+								components.LabelInline{Title: "Status", Children: []components.PageInterface{components.FieldText{Getter: clientStatusLabelFromIn()}}},
 								components.LabelInline{Title: "Remarks", Children: []components.PageInterface{components.FieldText{Getter: getters.Deref(getters.Key[*string]("$in.Remarks"))}}},
 								components.LabelInline{
 									Page:     components.Page{Roles: clientAdminRoles},

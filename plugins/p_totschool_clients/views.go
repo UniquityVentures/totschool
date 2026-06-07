@@ -26,7 +26,16 @@ type clientFormPatcher struct{}
 func (clientFormPatcher) Patch(_ views.View, r *http.Request, formData map[string]any, formErrors map[string]error) (map[string]any, map[string]error) {
 	user := p_users.UserFromContext(r.Context(), "clientFormPatcher")
 	formData["CreatedByID"] = user.ID
+	if _, ok := formData["Status"]; !ok {
+		formData["Status"] = ClientStatusActive
+	}
 	return formData, formErrors
+}
+
+type clientSelectQueryPatcher struct{}
+
+func (clientSelectQueryPatcher) Patch(_ views.View, _ *http.Request, query gorm.ChainInterface[Client]) gorm.ChainInterface[Client] {
+	return query.Where("status = ?", ClientStatusActive)
 }
 
 func pluginViews() lamu.PluginFeatures[*views.View] {
@@ -87,6 +96,7 @@ func pluginViews() lamu.PluginFeatures[*views.View] {
 					Key: getters.Static("clients"),
 					QueryPatchers: views.QueryPatchers[Client]{
 						{Key: "clients.query", Value: clientQueryPatcher{}},
+						{Key: "clients.select_active", Value: clientSelectQueryPatcher{}},
 					},
 				})},
 		},

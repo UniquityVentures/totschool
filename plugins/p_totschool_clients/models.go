@@ -11,6 +11,7 @@ type Client struct {
 	CreatedByID uint         `gorm:"notnull"`
 	CreatedBy   p_users.User `gorm:"foreignKey:CreatedByID"`
 	Name        string       `gorm:"size:250;notnull"`
+	Status      ClientStatus `gorm:"type:client_status;notnull;default:active"`
 	Address     *string      `gorm:"type:text"`
 	Phone       *string      `gorm:"size:20"`
 	Remarks     *string      `gorm:"type:text"`

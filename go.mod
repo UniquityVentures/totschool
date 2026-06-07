@@ -3,14 +3,14 @@ module github.com/UniquityVentures/totschool
 go 1.26.1
 
 require (
-	github.com/UniquityVentures/lamu v0.4.11
+	github.com/UniquityVentures/lamu v0.4.12
 	github.com/UniquityVentures/lamu/plugins/p_dashboard v0.4.11
 	github.com/UniquityVentures/lamu/plugins/p_google_genai v0.4.11
 	github.com/UniquityVentures/lamu/plugins/p_livereloading v0.4.11
-	github.com/UniquityVentures/lamu/plugins/p_otp v0.4.11
 	github.com/UniquityVentures/lamu/plugins/p_pwa v0.4.11
 	github.com/UniquityVentures/totschool/plugins/p_totschool_appointments v0.0.0-20260519014749-5ea2917068a8
 	github.com/UniquityVentures/totschool/plugins/p_totschool_clients v0.0.0-20260519014749-5ea2917068a8
+	github.com/UniquityVentures/totschool/plugins/p_totschool_dashboard v0.0.0-20260607034441-badf929c56a7
 	github.com/UniquityVentures/totschool/plugins/p_totschool_export v0.0.0-20260519014749-5ea2917068a8
 	github.com/UniquityVentures/totschool/plugins/p_totschool_proposals v0.0.0-20260519014749-5ea2917068a8
 	github.com/UniquityVentures/totschool/plugins/p_totschool_tally v0.0.0-20260519014749-5ea2917068a8
