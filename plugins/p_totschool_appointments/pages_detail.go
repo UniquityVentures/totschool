@@ -77,7 +77,7 @@ func registerDetail() []registry.Pair[string, components.PageInterface] {
 							}},
 
 							components.LabelInline{Title: "Phone", Children: []components.PageInterface{components.FieldPhone{Getter: clientPhoneFromIn()}}},
-							components.LabelInline{Title: "Status", Children: []components.PageInterface{components.FieldText{Getter: appointmentStatusLabelFromIn()}}},
+							components.LabelInline{Title: "Status", Children: []components.PageInterface{components.FieldText{Getter: registry.PairValueFromKey(getters.Key[AppointmentStatus]("$in.Status"), AppointmentStatusChoices)}}},
 							components.LabelInline{Title: "Date & Time", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$in.Datetime")}}},
 							components.LabelInline{Title: "Location", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$in.Location")}}},
 							components.LabelInline{Title: "Remarks", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$in.Remarks")}}},

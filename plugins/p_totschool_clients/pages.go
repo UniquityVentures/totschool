@@ -20,7 +20,7 @@ func clientStatusField() components.PageInterface {
 				Label:   "Status",
 				Name:    "Status",
 				Choices: getters.Static(ClientStatusChoices),
-				Getter:  clientStatusSelectGetter("$in.Status"),
+				Getter:  registry.PairFromGetter(getters.Key[ClientStatus]("$in.Status"), ClientStatusChoices),
 			},
 		},
 	}
@@ -64,14 +64,14 @@ func registerMenus() []registry.Pair[string, components.PageInterface] {
 				Url:   lamu.RoutePath("dashboard.AppsPage", nil),
 			},
 			Children: []components.PageInterface{
-				components.SidebarMenuItem{Title: getters.Static("All Clients"), Url: lamu.RoutePath("clients.ListRoute", nil)},
 				components.SidebarMenuItem{Title: getters.Static("Appointments Timeline"), Url: lamu.RoutePath("appointments.CardTimelineRoute", nil)},
-				components.SidebarMenuItem{Title: getters.Static("Old Proposals"), Url: lamu.RoutePath("proposals.ListRoute", nil)},
+				components.SidebarMenuItem{Title: getters.Static("All Clients"), Url: lamu.RoutePath("clients.ListRoute", nil)},
 				components.SidebarMenuItem{
 					Page:  components.Page{Roles: []string{"totschool_admin", "superuser"}},
 					Title: getters.Static("All Appointments"),
 					Url:   lamu.RoutePath("appointments.ListRoute", nil),
 				},
+				components.SidebarMenuItem{Title: getters.Static("Old Proposals"), Url: lamu.RoutePath("proposals.ListRoute", nil)},
 			},
 		}},
 		{Key: "clients.ClientDetailMenu", Value: components.SidebarMenu{
@@ -101,7 +101,7 @@ func registerFilter() []registry.Pair[string, components.PageInterface] {
 							Label:   "Status",
 							Name:    "Status",
 							Choices: getters.Static(ClientStatusChoices),
-							Getter:  clientStatusSelectGetter("$get.Status"),
+							Getter:  registry.PairFromGetter(getters.Key[ClientStatus]("$get.Status"), ClientStatusChoices),
 						},
 					},
 				},
@@ -197,7 +197,10 @@ func registerTable() []registry.Pair[string, components.PageInterface] {
 						&components.TableButtonFilter{Child: lamu.DynamicPage{Name: "clients.ClientFilter"}},
 						&components.TableButtonCreate{Link: lamu.RoutePath("clients.CreateRoute", nil)},
 					},
-					RowAttr: getters.RowAttrNavigate(lamu.RoutePath("clients.DetailRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("$row.ID"))})),
+					RowAttr: getters.RowAttrClickWithClass(
+						getters.NavigateGetter(lamu.RoutePath("clients.DetailRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("$row.ID"))})),
+						clientStatusRowClass(),
+					),
 					EnabledColumns: getters.Map(getters.Key[string]("$role"), func(_ context.Context, role string) (map[string]bool, error) {
 						if role == "totschool_admin" || role == "superuser" {
 							return nil, nil
@@ -208,7 +211,6 @@ func registerTable() []registry.Pair[string, components.PageInterface] {
 						{Label: "Name", Name: "Name", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$row.Name")}}},
 						{Label: "Address", Name: "Address", Children: []components.PageInterface{components.FieldText{Getter: getters.Deref(getters.Key[*string]("$row.Address"))}}},
 						{Label: "Phone", Name: "Phone", Children: []components.PageInterface{components.FieldPhone{Getter: getters.Deref(getters.Key[*string]("$row.Phone"))}}},
-						{Label: "Status", Name: "Status", Children: []components.PageInterface{components.FieldText{Getter: clientStatusLabelFromRow()}}},
 						{Label: "Created By", Name: "CreatedBy", Children: []components.PageInterface{components.FieldText{Getter: getters.ForeignKey[p_users.User, uint, string](getters.Key[uint]("$row.CreatedByID"), "Name")}}},
 					},
 				},
@@ -231,7 +233,7 @@ func registerDetail() []registry.Pair[string, components.PageInterface] {
 								components.FieldTitle{Getter: getters.Key[string]("$in.Name")},
 								components.LabelInline{Title: "Address", Children: []components.PageInterface{components.FieldText{Getter: getters.Deref(getters.Key[*string]("$in.Address"))}}},
 								components.LabelInline{Title: "Phone", Children: []components.PageInterface{components.FieldPhone{Getter: getters.Deref(getters.Key[*string]("$in.Phone"))}}},
-								components.LabelInline{Title: "Status", Children: []components.PageInterface{components.FieldText{Getter: clientStatusLabelFromIn()}}},
+								components.LabelInline{Title: "Status", Children: []components.PageInterface{components.FieldText{Getter: registry.PairValueFromKey(getters.Key[ClientStatus]("$in.Status"), ClientStatusChoices)}}},
 								components.LabelInline{Title: "Remarks", Children: []components.PageInterface{components.FieldText{Getter: getters.Deref(getters.Key[*string]("$in.Remarks"))}}},
 								components.LabelInline{
 									Page:     components.Page{Roles: clientAdminRoles},

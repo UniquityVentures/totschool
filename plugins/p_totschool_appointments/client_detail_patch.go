@@ -11,6 +11,7 @@ import (
 	"github.com/UniquityVentures/lamu/getters"
 	"github.com/UniquityVentures/lamu/lamu"
 	"github.com/UniquityVentures/lamu/plugins/p_users"
+	"github.com/UniquityVentures/lamu/registry"
 	"github.com/UniquityVentures/lamu/views"
 	"github.com/UniquityVentures/totschool/plugins/p_totschool_clients"
 	"gorm.io/gorm"
@@ -71,7 +72,7 @@ func (clientAppointmentsContextLayer) Next(_ views.View, next http.Handler) http
 func clientDetailAppointmentColumns() []components.TableColumn {
 	return []components.TableColumn{
 		{Label: "Status", Name: "Status", Children: []components.PageInterface{
-			components.FieldText{Getter: appointmentStatusLabelFromRow()},
+			components.FieldText{Getter: registry.PairValueFromKey(getters.Key[AppointmentStatus]("$row.Status"), AppointmentStatusChoices)},
 		}},
 		{Label: "Date & Time", Name: "Datetime", Children: []components.PageInterface{
 			components.FieldDatetime{Getter: getters.Key[time.Time]("$row.Datetime")},

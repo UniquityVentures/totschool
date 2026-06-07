@@ -40,7 +40,7 @@ func appointmentFormFields() []components.PageInterface {
 					Label:    "Status",
 					Required: true,
 					Choices:  getters.Static(AppointmentStatusChoices),
-					Getter:   appointmentStatusSelectGetter("$in.Status"),
+					Getter:   registry.PairFromGetter(getters.Key[AppointmentStatus]("$in.Status"), AppointmentStatusChoices),
 				},
 			},
 		},

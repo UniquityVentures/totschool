@@ -2,6 +2,7 @@ go 1.26.1
 
 use (
 	.
+	../../lamu
 	./plugins/p_totschool_appointments
 	./plugins/p_totschool_clients
 	./plugins/p_totschool_dashboard
@@ -10,5 +11,3 @@ use (
 	./plugins/p_totschool_tally
 	./plugins/p_totschool_users
 )
-
-

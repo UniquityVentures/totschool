@@ -12,7 +12,6 @@ import (
 	"github.com/UniquityVentures/lamu/components"
 	"github.com/UniquityVentures/lamu/getters"
 	"github.com/UniquityVentures/lamu/lamu"
-	"github.com/UniquityVentures/lamu/registry"
 	"maragu.dev/gomponents"
 )
 
@@ -140,45 +139,6 @@ func getterIdleGeneration() getters.Getter[bool] {
 			return true, nil
 		}
 		return false, nil
-	}
-}
-
-func appointmentStatusSelectGetter(ctxKey string) getters.Getter[registry.Pair[AppointmentStatus, string]] {
-	return func(ctx context.Context) (registry.Pair[AppointmentStatus, string], error) {
-		status, err := getters.Key[AppointmentStatus](ctxKey)(ctx)
-		if err != nil {
-			return registry.Pair[AppointmentStatus, string]{}, err
-		}
-		if p, ok := registry.PairFromPairs(status, AppointmentStatusChoices); ok {
-			return p, nil
-		}
-		return registry.Pair[AppointmentStatus, string]{Key: status, Value: string(status)}, nil
-	}
-}
-
-func appointmentStatusLabelFromRow() getters.Getter[string] {
-	return func(ctx context.Context) (string, error) {
-		status, err := getters.Key[AppointmentStatus]("$row.Status")(ctx)
-		if err != nil {
-			return "", err
-		}
-		if p, ok := registry.PairFromPairs(status, AppointmentStatusChoices); ok {
-			return p.Value, nil
-		}
-		return string(status), nil
-	}
-}
-
-func appointmentStatusLabelFromIn() getters.Getter[string] {
-	return func(ctx context.Context) (string, error) {
-		status, err := getters.Key[AppointmentStatus]("$in.Status")(ctx)
-		if err != nil {
-			return "", err
-		}
-		if p, ok := registry.PairFromPairs(status, AppointmentStatusChoices); ok {
-			return p.Value, nil
-		}
-		return string(status), nil
 	}
 }
 
