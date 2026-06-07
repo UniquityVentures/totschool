@@ -16,7 +16,7 @@ func registerDetail() []registry.Pair[string, components.PageInterface] {
 			components.ContainerRow{Classes: "flex flex-wrap justify-between items-center gap-4 mb-4", Children: []components.PageInterface{
 				components.FieldTitle{Getter: getters.Static("Generated Letter")},
 				components.ContainerColumn{Classes: "flex gap-2", Children: []components.PageInterface{
-					components.ButtonLink{Classes: "btn-outline btn-success btn-sm", Label: "Send via WhatsApp", Link: getters.Format("https://wa.me/%v?text=%v", getters.Any(clientPhoneFromIn()), getters.Any(getters.QueryEscape(getters.Key[string]("$in.GeneratedLetter"))))},
+					components.ButtonLink{Classes: "btn-outline btn-success btn-sm", Label: "Send via WhatsApp", Link: getters.Format("https://wa.me/%v?text=%v", getters.Any(getters.Deref(getters.Key[*string]("$in.Client.Phone"))), getters.Any(getters.QueryEscape(getters.Key[string]("$in.GeneratedLetter"))))},
 					components.ButtonModalForm{Label: "Edit with AI", Name: getters.Static("appointments.AiEditModal"), Url: lamu.RoutePath("appointments.AiEditFormRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("appointment.ID"))}), FormPostURL: lamu.RoutePath("appointments.AiEditRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("appointment.ID"))}), ModalUID: "ai-edit-modal", Classes: "btn-outline btn-secondary btn-sm"},
 					components.ButtonPost{Label: "Regenerate Letter", URL: lamu.RoutePath("appointments.GenerateRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("appointment.ID"))}), Classes: "btn-outline btn-primary btn-sm"},
 				}},
@@ -76,7 +76,7 @@ func registerDetail() []registry.Pair[string, components.PageInterface] {
 								components.FieldSubtitle{Getter: getters.Deref(getters.Key[*string]("$in.Client.Address"))},
 							}},
 
-							components.LabelInline{Title: "Phone", Children: []components.PageInterface{components.FieldPhone{Getter: clientPhoneFromIn()}}},
+							components.LabelInline{Title: "Phone", Children: []components.PageInterface{components.FieldPhone{Getter: getters.Deref(getters.Key[*string]("$in.Client.Phone"))}}},
 							components.LabelInline{Title: "Status", Children: []components.PageInterface{components.FieldText{Getter: registry.PairValueFromKey(getters.Key[AppointmentStatus]("$in.Status"), AppointmentStatusChoices)}}},
 							components.LabelInline{Title: "Date & Time", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$in.Datetime")}}},
 							components.LabelInline{Title: "Location", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$in.Location")}}},

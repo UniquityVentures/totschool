@@ -142,26 +142,6 @@ func getterIdleGeneration() getters.Getter[bool] {
 	}
 }
 
-func clientPhoneFromRow() getters.Getter[string] {
-	return func(ctx context.Context) (string, error) {
-		phone, err := getters.Key[*string]("$row.Client.Phone")(ctx)
-		if err == nil && phone != nil {
-			return *phone, nil
-		}
-		return "", nil
-	}
-}
-
-func clientAddressFromRow() getters.Getter[string] {
-	return func(ctx context.Context) (string, error) {
-		addr, err := getters.Key[*string]("$row.Client.Address")(ctx)
-		if err == nil && addr != nil {
-			return *addr, nil
-		}
-		return "", nil
-	}
-}
-
 func overlapAppointmentLinkLabel() getters.Getter[string] {
 	return func(ctx context.Context) (string, error) {
 		name, err := getters.Key[string]("$row.Name")(ctx)
@@ -181,15 +161,5 @@ func overlapAppointmentLinkLabel() getters.Getter[string] {
 			dateStr = t.In(timezone).Format("Mon, 02 Jan 2006 15:04:05")
 		}
 		return name + " — " + dateStr, nil
-	}
-}
-
-func clientPhoneFromIn() getters.Getter[string] {
-	return func(ctx context.Context) (string, error) {
-		phone, err := getters.Key[*string]("$in.Client.Phone")(ctx)
-		if err == nil && phone != nil {
-			return *phone, nil
-		}
-		return "", nil
 	}
 }

@@ -89,8 +89,8 @@ func registerTable() []registry.Pair[string, components.PageInterface] {
 					RowAttr: getters.RowAttrNavigate(lamu.RoutePath("appointments.DetailRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("$row.ID"))})),
 					Columns: []components.TableColumn{
 						{Label: "Client", Name: "Client", Children: []components.PageInterface{components.FieldText{Getter: getters.ForeignKey[p_totschool_clients.Client, uint, string](getters.Key[uint]("$row.ClientID"), "Name")}}},
-						{Label: "Phone", Name: "Phone", Children: []components.PageInterface{components.FieldPhone{Getter: clientPhoneFromRow()}}},
-						{Label: "Address", Name: "Address", Children: []components.PageInterface{components.FieldText{Getter: clientAddressFromRow()}}},
+						{Label: "Phone", Name: "Phone", Children: []components.PageInterface{components.FieldPhone{Getter: getters.Deref(getters.Key[*string]("$row.Client.Phone"))}}},
+						{Label: "Address", Name: "Address", Children: []components.PageInterface{components.FieldText{Getter: getters.Deref(getters.Key[*string]("$row.Client.Address"))}}},
 						{Label: "Status", Name: "Status", Children: []components.PageInterface{components.FieldText{Getter: registry.PairValueFromKey(getters.Key[AppointmentStatus]("$row.Status"), AppointmentStatusChoices)}}},
 						{Label: "Date & Time", Name: "Datetime", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$row.Datetime")}}},
 						{Label: "Created By", Name: "CreatedBy", Children: []components.PageInterface{components.FieldText{Getter: getters.ForeignKey[p_users.User, uint, string](getters.Key[uint]("$row.CreatedByID"), "Name")}}},
@@ -170,8 +170,8 @@ func registerSelectionPages() []registry.Pair[string, components.PageInterface] 
 								components.ShowIf{Getter: getters.Any(getters.Key[string]("$row.Location")), Children: []components.PageInterface{
 									components.FieldText{Getter: getters.Key[string]("$row.Location"), Classes: "text-sm"},
 								}},
-								components.FieldText{Classes: "text-sm", Getter: clientAddressFromRow()},
-								components.FieldPhone{Classes: "text-sm", Getter: clientPhoneFromRow()},
+								components.FieldText{Classes: "text-sm", Getter: getters.Deref(getters.Key[*string]("$row.Client.Address"))},
+								components.FieldPhone{Classes: "text-sm", Getter: getters.Deref(getters.Key[*string]("$row.Client.Phone"))},
 								components.FieldText{Classes: "text-sm", Getter: registry.PairValueFromKey(getters.Key[AppointmentStatus]("$row.Status"), AppointmentStatusChoices)},
 								components.ShowIf{Getter: getters.Any(getters.Key[string]("$row.Remarks")), Children: []components.PageInterface{
 									components.FieldText{Getter: getters.Key[string]("$row.Remarks"), Classes: "text-sm italic"},
