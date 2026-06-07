@@ -14,22 +14,7 @@ import (
 	"github.com/UniquityVentures/lamu/views"
 	"github.com/UniquityVentures/totschool/plugins/p_totschool_clients"
 	"gorm.io/gorm"
-	"maragu.dev/gomponents"
 )
-
-func clientDetailModalButtonAttr(tableSelector string) getters.Getter[gomponents.Node] {
-	refresh := getters.ModalRefreshList(getters.Static(""), getters.Static(tableSelector))
-	return func(ctx context.Context) (gomponents.Node, error) {
-		nodes, err := refresh(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return gomponents.Group{
-			gomponents.Attr("@click.stop", ""),
-			nodes,
-		}, nil
-	}
-}
 
 const (
 	clientDetailAppointmentsContextKey = "client_appointments_table"
@@ -84,8 +69,6 @@ func (clientAppointmentsContextLayer) Next(_ views.View, next http.Handler) http
 }
 
 func clientDetailAppointmentColumns() []components.TableColumn {
-	updateFormName := getters.Static("appointments.AppointmentUpdateForm")
-
 	return []components.TableColumn{
 		{Label: "Status", Name: "Status", Children: []components.PageInterface{
 			components.FieldText{Getter: appointmentStatusLabelFromRow()},
@@ -102,37 +85,6 @@ func clientDetailAppointmentColumns() []components.TableColumn {
 		{Label: "Created By", Name: "CreatedBy", Children: []components.PageInterface{
 			components.FieldText{Getter: getters.ForeignKey[p_users.User, uint, string](getters.Key[uint]("$row.CreatedByID"), "Name")},
 		}},
-		{
-			Label: "",
-			Name:  "Actions",
-			Children: []components.PageInterface{
-				components.ContainerRow{
-					Classes: "flex gap-1",
-					Children: []components.PageInterface{
-						components.ButtonModalForm{
-							Label: "Edit",
-							Icon:  "pencil",
-							Name:  updateFormName,
-							Url: getters.Format(
-								"%s?return=client",
-								getters.Any(lamu.RoutePath("appointments.UpdateRoute", map[string]getters.Getter[any]{
-									"id": getters.Any(getters.Key[uint]("$row.ID")),
-								})),
-							),
-							FormPostURL: getters.Format(
-								"%s?return=client",
-								getters.Any(lamu.RoutePath("appointments.UpdateRoute", map[string]getters.Getter[any]{
-									"id": getters.Any(getters.Key[uint]("$row.ID")),
-								})),
-							),
-							ModalUID: "appointment-update-modal",
-							Classes:  "btn-outline btn-sm m-2",
-							Attr:     clientDetailModalButtonAttr("#client-detail-appointments-table"),
-						},
-					},
-				},
-			},
-		},
 	}
 }
 

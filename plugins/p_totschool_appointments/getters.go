@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/UniquityVentures/lamu/components"
 	"github.com/UniquityVentures/lamu/getters"
 	"github.com/UniquityVentures/lamu/lamu"
 	"github.com/UniquityVentures/lamu/registry"
@@ -198,6 +199,28 @@ func clientAddressFromRow() getters.Getter[string] {
 			return *addr, nil
 		}
 		return "", nil
+	}
+}
+
+func overlapAppointmentLinkLabel() getters.Getter[string] {
+	return func(ctx context.Context) (string, error) {
+		name, err := getters.Key[string]("$row.Name")(ctx)
+		if err != nil {
+			return "", err
+		}
+		t, err := getters.Key[time.Time]("$row.Date")(ctx)
+		if err != nil {
+			return "", err
+		}
+		timezone, _ := ctx.Value("$tz").(*time.Location)
+		if timezone == nil {
+			timezone = components.DefaultTimeZone
+		}
+		dateStr := ""
+		if !t.IsZero() {
+			dateStr = t.In(timezone).Format("Mon, 02 Jan 2006 15:04:05")
+		}
+		return name + " — " + dateStr, nil
 	}
 }
 

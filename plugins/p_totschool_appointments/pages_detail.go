@@ -63,11 +63,10 @@ func registerDetail() []registry.Pair[string, components.PageInterface] {
 										Getter:  getters.Key[[]map[string]any]("OverlapWarningList"),
 										Classes: "flex flex-col gap-2 pl-4",
 										Children: []components.PageInterface{
-											components.ContainerRow{Classes: "items-center gap-2", Children: []components.PageInterface{
-												components.ButtonLink{GetterLabel: getters.Key[string]("$row.Name"), Link: lamu.RoutePath("appointments.DetailRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("$row.ID"))})},
-												components.FieldText{Getter: getters.Static(" — ")},
-												components.FieldDatetime{Getter: getters.Key[time.Time]("$row.Date")},
-											}},
+											components.ButtonLink{
+												GetterLabel: overlapAppointmentLinkLabel(),
+												Link:        lamu.RoutePath("appointments.DetailRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("$row.ID"))}),
+											},
 										},
 									},
 								}},

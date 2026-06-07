@@ -79,11 +79,10 @@ func registerTable() []registry.Pair[string, components.PageInterface] {
 			Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "clients.ClientMenu"}},
 			Children: []components.PageInterface{
 				components.DataTable[Appointment]{
-					UID:         "appointment-table",
-					Data:        getters.Key[components.ObjectList[Appointment]]("appointments"),
-					Title:       "Appointments",
-					Subtitle:    "List of appointments",
-					DefaultView: "Grid",
+					UID:      "appointment-table",
+					Data:     getters.Key[components.ObjectList[Appointment]]("appointments"),
+					Title:    "Appointments",
+					Subtitle: "List of appointments",
 					Actions: []components.PageInterface{
 						&components.TableButtonFilter{Child: lamu.DynamicPage{Name: "appointments.AppointmentFilter"}},
 					},
