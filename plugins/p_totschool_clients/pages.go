@@ -65,7 +65,6 @@ func registerMenus() []registry.Pair[string, components.PageInterface] {
 			},
 			Children: []components.PageInterface{
 				components.SidebarMenuItem{Title: getters.Static("Dashboard"), Url: lamu.RoutePath("clients.DashboardRoute", nil)},
-				components.SidebarMenuItem{Title: getters.Static("Appointments Timeline"), Url: lamu.RoutePath("appointments.CardTimelineRoute", nil)},
 				components.SidebarMenuItem{Title: getters.Static("All Clients"), Url: lamu.RoutePath("clients.ListRoute", nil)},
 				components.SidebarMenuItem{
 					Page:  components.Page{Roles: []string{"totschool_admin", "superuser"}},
