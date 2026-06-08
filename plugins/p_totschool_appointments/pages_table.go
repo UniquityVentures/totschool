@@ -146,7 +146,7 @@ func registerSelectionPages() []registry.Pair[string, components.PageInterface] 
 			Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "clients.ClientMenu"}},
 			Children: []components.PageInterface{
 				components.FormComponent[Appointment]{
-					Classes: "max-w-xs mb-4",
+					Classes: "max-w-xs",
 					Attr:    appointmentTimelineDateFilterAttr(),
 					ChildrenInput: []components.PageInterface{
 						components.ContainerError{

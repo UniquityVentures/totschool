@@ -64,6 +64,7 @@ func registerMenus() []registry.Pair[string, components.PageInterface] {
 				Url:   lamu.RoutePath("dashboard.AppsPage", nil),
 			},
 			Children: []components.PageInterface{
+				components.SidebarMenuItem{Title: getters.Static("Dashboard"), Url: lamu.RoutePath("clients.DashboardRoute", nil)},
 				components.SidebarMenuItem{Title: getters.Static("Appointments Timeline"), Url: lamu.RoutePath("appointments.CardTimelineRoute", nil)},
 				components.SidebarMenuItem{Title: getters.Static("All Clients"), Url: lamu.RoutePath("clients.ListRoute", nil)},
 				components.SidebarMenuItem{
@@ -169,6 +170,50 @@ func registerForms() []registry.Pair[string, components.PageInterface] {
 							},
 						},
 					},
+				},
+			},
+		}},
+	}
+}
+
+func registerDashboard() []registry.Pair[string, components.PageInterface] {
+	return []registry.Pair[string, components.PageInterface]{
+		{Key: "clients.ClientDashboard", Value: components.ShellScaffold{
+			Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "clients.ClientMenu"}},
+			Children: []components.PageInterface{
+				components.FieldTitle{Getter: getters.Static("Dashboard")},
+				components.FieldSubtitle{Getter: getters.Static("Clients Overview")},
+				components.DataTable[Client]{
+					UID:         "dashboard-active-clients",
+					Title:       "Active Clients",
+					Data:        getters.Key[components.ObjectList[Client]]("dashboardActiveClients"),
+					DefaultView: "Grid",
+					RowAttr: getters.RowAttrNavigate(lamu.RoutePath("clients.DetailRoute", map[string]getters.Getter[any]{
+						"id": getters.Any(getters.Key[uint]("$row.ID")),
+					})),
+					Columns: []components.TableColumn{
+						{Label: "Name", Name: "Name", Children: []components.PageInterface{
+							components.FieldText{Getter: getters.Key[string]("$row.Name")},
+						}},
+						{Label: "Address", Name: "Address", Children: []components.PageInterface{
+							components.FieldText{Getter: getters.Deref(getters.Key[*string]("$row.Address"))},
+						}},
+					},
+				},
+				components.ButtonLink{
+					Label:   "View all",
+					Link:    lamu.RoutePath("clients.ListRoute", nil),
+					Classes: "w-full mt-2 mb-6",
+				},
+				components.FieldTitle{
+					Getter:  getters.Static("Today's Schedule"),
+					Classes: "text-white",
+				},
+				components.FieldText{Getter: dashboardTodayAppointmentsSummary()},
+				components.ButtonLink{
+					Label:   "View timeline",
+					Link:    lamu.RoutePath("appointments.CardTimelineRoute", nil),
+					Classes: "w-full mt-2",
 				},
 			},
 		}},
@@ -298,6 +343,7 @@ func registerSelection() []registry.Pair[string, components.PageInterface] {
 func pluginPages() lamu.PluginFeatures[components.PageInterface] {
 	var entries []registry.Pair[string, components.PageInterface]
 	entries = append(entries, registerMenus()...)
+	entries = append(entries, registerDashboard()...)
 	entries = append(entries, registerFilter()...)
 	entries = append(entries, registerForms()...)
 	entries = append(entries, registerTable()...)

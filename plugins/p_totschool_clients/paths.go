@@ -8,6 +8,7 @@ import (
 func pluginRoutes() lamu.PluginFeatures[lamu.Route] {
 	return lamu.PluginFeatures[lamu.Route]{
 		Entries: []registry.Pair[string, lamu.Route]{
+			{Key: "clients.DashboardRoute", Value: lamu.Route{Path: AppUrl + "dashboard/", Handler: lamu.NewDynamicView("clients.DashboardView")}},
 			{Key: "clients.ListRoute", Value: lamu.Route{Path: AppUrl, Handler: lamu.NewDynamicView("clients.ListView")}},
 			{Key: "clients.CreateRoute", Value: lamu.Route{Path: AppUrl + "create/", Handler: lamu.NewDynamicView("clients.CreateView")}},
 			{Key: "clients.DetailRoute", Value: lamu.Route{Path: AppUrl + "{id}/", Handler: lamu.NewDynamicView("clients.DetailView")}},

@@ -41,6 +41,18 @@ func (clientSelectQueryPatcher) Patch(_ views.View, _ *http.Request, query gorm.
 func pluginViews() lamu.PluginFeatures[*views.View] {
 	return lamu.PluginFeatures[*views.View]{
 		Entries: []registry.Pair[string, *views.View]{
+			{Key: "clients.DashboardView", Value: lamu.GetPageView("clients.ClientDashboard").
+				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
+				WithLayer("clients.dashboard_active", views.LayerList[Client]{
+					Key:      getters.Static("dashboardActiveClients"),
+					PageSize: getters.Static(uint(5)),
+					QueryPatchers: views.QueryPatchers[Client]{
+						{Key: "clients.query", Value: clientQueryPatcher{}},
+						{Key: "clients.dashboard_active", Value: clientSelectQueryPatcher{}},
+						{Key: "clients.dashboard_order", Value: views.QueryPatcherOrderBy[Client]{Order: "name ASC"}},
+					},
+				}).
+				WithLayer("clients.dashboard_schedule", dashboardTodayScheduleLayer{})},
 			{Key: "clients.ListView", Value: lamu.GetPageView("clients.ClientTable").
 				WithLayer("p_users.auth", p_users.AuthenticationLayer{}).
 				WithLayer("clients.list", views.LayerList[Client]{
