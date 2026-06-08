@@ -2,6 +2,7 @@ package p_totschool_proposals
 
 import (
 	"context"
+	"errors"
 	"log"
 	"log/slog"
 	"net/http"
@@ -10,15 +11,15 @@ import (
 	"github.com/UniquityVentures/lamu/components"
 	"github.com/UniquityVentures/lamu/getters"
 	"github.com/UniquityVentures/lamu/lamu"
-	"github.com/UniquityVentures/lamu/plugins/p_users"
 	"github.com/UniquityVentures/lamu/views"
 	"github.com/UniquityVentures/totschool/plugins/p_totschool_clients"
 	"gorm.io/gorm"
 	"maragu.dev/gomponents"
+	g_html "maragu.dev/gomponents/html"
 )
 
-func clientDetailModalButtonAttr(tableSelector string) getters.Getter[gomponents.Node] {
-	refresh := getters.ModalRefreshList(getters.Static(""), getters.Static(tableSelector))
+func clientDetailModalButtonAttr(sectionSelector string) getters.Getter[gomponents.Node] {
+	refresh := getters.ModalRefreshList(getters.Static(""), getters.Static(sectionSelector))
 	return func(ctx context.Context) (gomponents.Node, error) {
 		nodes, err := refresh(ctx)
 		if err != nil {
@@ -32,9 +33,11 @@ func clientDetailModalButtonAttr(tableSelector string) getters.Getter[gomponents
 }
 
 const (
-	clientDetailProposalsContextKey = "client_proposals_table"
-	clientDetailProposalsLayerKey   = "proposals.client_detail"
-	clientDetailProposalsTableKey   = "proposals.ClientDetailProposalsTable"
+	clientDetailProposalContextKey = "client_proposal"
+	clientDetailHasProposalKey     = "client_has_proposal"
+	clientDetailProposalsLayerKey  = "proposals.client_detail"
+	clientDetailProposalSectionKey = "proposals.ClientDetailProposalSection"
+	clientDetailProposalSectionID  = "#client-detail-proposal-section"
 )
 
 func init() {
@@ -58,69 +61,92 @@ func (clientProposalsContextLayer) Next(_ views.View, next http.Handler) http.Ha
 			return
 		}
 
-		query := gorm.G[Proposal](db).
-			Where("client_id = ?", client.ID).
-			Order("created_at DESC").
-			Order("id DESC")
+		query := gorm.G[Proposal](db).Where("client_id = ?", client.ID)
 		query = scopeProposalsQueryToCurrentUser(r, query)
 
-		rows, err := query.Find(r.Context())
-		if err != nil {
+		proposal, err := query.First(r.Context())
+		hasProposal := err == nil && proposal.ID != 0
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Error("clientProposalsContextLayer: query failed", "error", err)
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		ol := components.ObjectList[Proposal]{
-			Items:    rows,
-			Number:   1,
-			NumPages: 1,
-			Total:    uint64(len(rows)),
-		}
-		ctx := context.WithValue(r.Context(), clientDetailProposalsContextKey, ol)
+		ctx := context.WithValue(r.Context(), clientDetailProposalContextKey, proposal)
+		ctx = context.WithValue(ctx, clientDetailHasProposalKey, hasProposal)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func clientDetailProposalColumns() []components.TableColumn {
-	updateFormName := getters.Static("proposals.ProposalUpdateForm")
+func clientDetailNoProposal() getters.Getter[bool] {
+	return func(ctx context.Context) (bool, error) {
+		has, err := getters.Key[bool](clientDetailHasProposalKey)(ctx)
+		if err != nil {
+			return false, err
+		}
+		return !has, nil
+	}
+}
 
-	return []components.TableColumn{
-		{Label: "Title", Name: "Title", Children: []components.PageInterface{
-			components.FieldText{Getter: getters.Key[string]("$row.Title")},
-		}},
-		{Label: "Created By", Name: "CreatedBy", Children: []components.PageInterface{
-			components.FieldText{Getter: getters.ForeignKey[p_users.User, uint, string](getters.Key[uint]("$row.CreatedByID"), "Name")},
-		}},
-		{Label: "Created At", Name: "CreatedAt", Children: []components.PageInterface{
-			components.FieldDatetime{Getter: getters.Key[time.Time]("$row.CreatedAt")},
-		}},
-		{
-			Label: "",
-			Name:  "Actions",
-			Children: []components.PageInterface{
-				components.ContainerRow{
-					Classes: "flex gap-1",
-					Children: []components.PageInterface{
-						components.ButtonModalForm{
-							Label: "Edit",
-							Icon:  "pencil",
-							Name:  updateFormName,
-							Url: getters.Format(
-								"%s?return=client",
-								getters.Any(lamu.RoutePath("proposals.UpdateRoute", map[string]getters.Getter[any]{
-									"id": getters.Any(getters.Key[uint]("$row.ID")),
-								})),
-							),
-							FormPostURL: getters.Format(
-								"%s?return=client",
-								getters.Any(lamu.RoutePath("proposals.UpdateRoute", map[string]getters.Getter[any]{
-									"id": getters.Any(getters.Key[uint]("$row.ID")),
-								})),
-							),
-							ModalUID: "proposal-update-modal",
-							Classes:  "btn-outline btn-sm m-2",
-							Attr:     clientDetailModalButtonAttr("#client-detail-proposals-table"),
+func clientDetailProposalCreateButton() components.PageInterface {
+	createFormName := getters.Static("proposals.ProposalCreateForm")
+	return &components.ButtonModalForm{
+		Label: "Create Proposal",
+		Icon:  "plus",
+		Name:  createFormName,
+		Url: getters.Format(
+			"%s?ClientID=%d&return=client",
+			getters.Any(lamu.RoutePath("proposals.CreateRoute", nil)),
+			getters.Any(getters.Key[uint]("client.ID")),
+		),
+		FormPostURL: getters.Format(
+			"%s?ClientID=%d&return=client",
+			getters.Any(lamu.RoutePath("proposals.CreateRoute", nil)),
+			getters.Any(getters.Key[uint]("client.ID")),
+		),
+		ModalUID: "proposal-create-modal",
+		Classes:  "btn-outline btn-sm",
+		Attr:     getters.ModalRefreshList(getters.Static(""), getters.Static(clientDetailProposalSectionID)),
+	}
+}
+
+func clientDetailProposalCard() components.PageInterface {
+	return components.ContainerColumn{
+		Classes: "border border-base-300 rounded-box bg-base-100 p-2",
+		Children: []components.PageInterface{
+			components.Detail[Proposal]{
+				Getter: getters.Key[Proposal](clientDetailProposalContextKey),
+				Children: []components.PageInterface{
+					components.ContainerRow{
+						Classes: "flex flex-wrap justify-between items-start",
+						Children: []components.PageInterface{
+							components.ContainerColumn{
+								Classes: "min-w-0",
+								Children: []components.PageInterface{
+									components.FieldText{
+										Classes: "font-semibold text-lg",
+										Getter:  getters.Key[string]("$in.Title"),
+									},
+									components.LabelInline{
+										Title: "Created",
+										Children: []components.PageInterface{
+											components.FieldDatetime{Getter: getters.Key[time.Time]("$in.CreatedAt")},
+										},
+									},
+								},
+							},
+							components.ContainerRow{
+								Classes: "flex flex-wrap gap-2 shrink-0",
+								Children: []components.PageInterface{
+									components.ButtonLink{
+										Label: "View Proposal",
+										Link: lamu.RoutePath("proposals.DetailRoute", map[string]getters.Getter[any]{
+											"id": getters.Any(getters.Key[uint]("$in.ID")),
+										}),
+										Classes: "btn-outline btn-sm",
+									},
+								},
+							},
 						},
 					},
 				},
@@ -129,45 +155,74 @@ func clientDetailProposalColumns() []components.TableColumn {
 	}
 }
 
-func clientDetailProposalsSection() components.PageInterface {
-	createFormName := getters.Static("proposals.ProposalCreateForm")
-	return &components.DataTable[Proposal]{
-		Page:        components.Page{Key: clientDetailProposalsTableKey},
-		UID:         "client-detail-proposals-table",
-		Title:       "Proposals",
-		Classes:     "w-full mt-4",
-		Data:        getters.Key[components.ObjectList[Proposal]](clientDetailProposalsContextKey),
-		DefaultView: "Grid",
-		RowAttr: getters.RowAttrClickWithClass(
-			getters.Format(
-				"if (!$event.target.closest('button, a, input, select, textarea, .fk-modal-host')) { htmx.ajax('GET', '%s', {target: 'body', swap: 'outerHTML'}) }",
-				getters.Any(lamu.RoutePath("proposals.DetailRoute", map[string]getters.Getter[any]{
-					"id": getters.Any(getters.Key[uint]("$row.ID")),
-				})),
-			),
-			nil,
-		),
-		Actions: []components.PageInterface{
-			&components.ButtonModalForm{
-				Name: createFormName,
-				Url: getters.Format(
-					"%s?ClientID=%d&return=client",
-					getters.Any(lamu.RoutePath("proposals.CreateRoute", nil)),
-					getters.Any(getters.Key[uint]("client.ID")),
-				),
-				FormPostURL: getters.Format(
-					"%s?ClientID=%d&return=client",
-					getters.Any(lamu.RoutePath("proposals.CreateRoute", nil)),
-					getters.Any(getters.Key[uint]("client.ID")),
-				),
-				ModalUID: "proposal-create-modal",
-				Icon:     "plus",
-				Classes:  "btn-square btn-outline btn-sm",
-				Attr:     getters.ModalRefreshList(getters.Static(""), getters.Static("#client-detail-proposals-table")),
+func clientDetailProposalSection() components.PageInterface {
+	return containerWithID{
+		Page:    components.Page{Key: clientDetailProposalSectionKey},
+		ID:      "client-detail-proposal-section",
+		Classes: "w-full mt-6 gap-3 flex flex-col",
+		Children: []components.PageInterface{
+			components.ContainerRow{
+				Classes: "flex flex-wrap items-center justify-between",
+				Children: []components.PageInterface{
+					components.FieldTitle{Getter: getters.Static("Proposal")},
+				},
+			},
+			components.ShowIf{
+				Getter:   getters.Any(getters.Key[bool](clientDetailHasProposalKey)),
+				Children: []components.PageInterface{clientDetailProposalCard()},
+			},
+			components.ShowIf{
+				Getter: getters.Any(clientDetailNoProposal()),
+				Children: []components.PageInterface{
+					components.ContainerColumn{
+						Classes: "border border-dashed border-base-300 rounded-box bg-base-100 p-6 gap-3 items-center text-center",
+						Children: []components.PageInterface{
+							components.FieldText{
+								Classes: "text-base-content/70",
+								Getter:  getters.Static("No proposal yet for this client."),
+							},
+							clientDetailProposalCreateButton(),
+						},
+					},
+				},
 			},
 		},
-		Columns: clientDetailProposalColumns(),
 	}
+}
+
+type containerWithID struct {
+	components.Page
+	ID       string
+	Classes  string
+	Children []components.PageInterface
+}
+
+func (e containerWithID) Build(ctx context.Context) gomponents.Node {
+	group := gomponents.Group{}
+	for _, child := range e.Children {
+		group = append(group, components.Render(child, ctx))
+	}
+	return g_html.Div(
+		g_html.ID(e.ID),
+		g_html.Class(e.Classes),
+		group,
+	)
+}
+
+func (e containerWithID) GetKey() string {
+	return e.Key
+}
+
+func (e containerWithID) GetRoles() []string {
+	return e.Roles
+}
+
+func (e containerWithID) GetChildren() []components.PageInterface {
+	return e.Children
+}
+
+func (e *containerWithID) SetChildren(children []components.PageInterface) {
+	e.Children = children
 }
 
 func viewHasLayer(v *views.View, name string) bool {
@@ -189,10 +244,10 @@ func containerColumnHasChildKey(column components.ContainerColumn, key string) b
 }
 
 func patchClientDetailContentColumn(column components.ContainerColumn) components.ContainerColumn {
-	if containerColumnHasChildKey(column, clientDetailProposalsTableKey) {
+	if containerColumnHasChildKey(column, clientDetailProposalSectionKey) {
 		return column
 	}
-	column.Children = append(column.Children, clientDetailProposalsSection())
+	column.Children = append(column.Children, clientDetailProposalSection())
 	return column
 }
 

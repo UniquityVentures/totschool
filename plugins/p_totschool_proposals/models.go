@@ -42,7 +42,7 @@ type Proposal struct {
 	gorm.Model
 	CreatedByID      uint                        `gorm:"notnull"`
 	CreatedBy        p_users.User                `gorm:"foreignKey:CreatedByID"`
-	ClientID         *uint                       `gorm:"index"`
+	ClientID         *uint                       `gorm:"unique"`
 	Client           p_totschool_clients.Client  `gorm:"foreignKey:ClientID"`
 	Title            string                      `gorm:"size:250;notnull"`
 	Answers          datatypes.JSON // [{"question":"...","answer":"..."}, ...]

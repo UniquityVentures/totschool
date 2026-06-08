@@ -1,6 +1,7 @@
 package p_totschool_proposals
 
 import (
+	"context"
 	"time"
 
 	"github.com/UniquityVentures/lamu/components"
@@ -15,15 +16,40 @@ func registerMenus() []registry.Pair[string, components.PageInterface] {
 	return []registry.Pair[string, components.PageInterface]{
 		{Key: "proposals.ProposalDetailMenu", Value: components.SidebarMenu{
 			Title: getters.Format("Proposal: %s", getters.Any(getters.Key[string]("proposal.Title"))),
-			Back: &components.SidebarMenuItem{
-				Title: getters.Static("Back to Unassigned Proposals"),
-				Url:   lamu.RoutePath("proposals.ListRoute", nil),
-			},
+			Back:  proposalDetailBackItem(),
 			Children: []components.PageInterface{
 				components.SidebarMenuItem{Title: getters.Static("Proposal Detail"), Url: lamu.RoutePath("proposals.DetailRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("proposal.ID"))})},
-				components.SidebarMenuItem{Title: getters.Static("Edit Proposal"), Url: lamu.RoutePath("proposals.UpdateRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("proposal.ID"))})},
 			},
 		}},
+	}
+}
+
+func proposalDetailBackItem() *components.SidebarMenuItem {
+	return &components.SidebarMenuItem{
+		Title: proposalDetailBackTitle(),
+		Url:   proposalDetailBackURL(),
+	}
+}
+
+func proposalDetailBackTitle() getters.Getter[string] {
+	return func(ctx context.Context) (string, error) {
+		clientID, err := getters.Deref(getters.Key[*uint]("proposal.ClientID"))(ctx)
+		if err == nil && clientID != 0 {
+			return "Back to Client", nil
+		}
+		return "Back to Unassigned Proposals", nil
+	}
+}
+
+func proposalDetailBackURL() getters.Getter[string] {
+	return func(ctx context.Context) (string, error) {
+		clientID, err := getters.Deref(getters.Key[*uint]("proposal.ClientID"))(ctx)
+		if err == nil && clientID != 0 {
+			return lamu.RoutePath("clients.DetailRoute", map[string]getters.Getter[any]{
+				"id": getters.Any(getters.Static(clientID)),
+			})(ctx)
+		}
+		return lamu.RoutePath("proposals.ListRoute", nil)(ctx)
 	}
 }
 
@@ -164,27 +190,46 @@ func registerForms() []registry.Pair[string, components.PageInterface] {
 }
 
 func registerTable() []registry.Pair[string, components.PageInterface] {
-	return []registry.Pair[string, components.PageInterface]{{Key: "proposals.ProposalTable", Value: components.ShellScaffold{
-		Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "clients.ClientMenu"}},
-		Children: []components.PageInterface{
-			components.DataTable[Proposal]{
-				UID:      "proposal-table",
-				Data:     getters.Key[components.ObjectList[Proposal]]("proposals"),
-				Title:    "Unassigned Proposals",
-				Subtitle: "Proposals not yet linked to a client",
-				Actions: []components.PageInterface{
-					&components.TableButtonFilter{Child: lamu.DynamicPage{Name: "proposals.ProposalFilter"}},
-				},
-				RowAttr: getters.RowAttrNavigate(lamu.RoutePath("proposals.DetailRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("$row.ID"))})),
-				Columns: []components.TableColumn{
-					{Label: "Title", Name: "Title", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$row.Title")}}},
-					{Label: "Created At", Name: "CreatedAt", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$row.CreatedAt")}}},
-					{Label: "Updated At", Name: "UpdatedAt", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$row.UpdatedAt")}}},
+	return []registry.Pair[string, components.PageInterface]{
+		{
+			Key: "proposals.ProposalTable", Value: components.ShellScaffold{
+				Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "clients.ClientMenu"}},
+				Children: []components.PageInterface{
+					components.DataTable[Proposal]{
+						UID:      "proposal-table",
+						Data:     getters.Key[components.ObjectList[Proposal]]("proposals"),
+						Title:    "Unassigned Proposals",
+						Subtitle: "Proposals not yet linked to a client",
+						Actions: []components.PageInterface{
+							&components.TableButtonFilter{Child: lamu.DynamicPage{Name: "proposals.ProposalFilter"}},
+						},
+						RowAttr: getters.RowAttrNavigate(lamu.RoutePath("proposals.DetailRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("$row.ID"))})),
+						Columns: []components.TableColumn{
+							{Label: "Title", Name: "Title", Children: []components.PageInterface{components.FieldText{Getter: getters.Key[string]("$row.Title")}}},
+							{Label: "Created At", Name: "CreatedAt", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$row.CreatedAt")}}},
+							{Label: "Updated At", Name: "UpdatedAt", Children: []components.PageInterface{components.FieldDatetime{Getter: getters.Key[time.Time]("$row.UpdatedAt")}}},
+						},
+					},
 				},
 			},
 		},
-	},
-	},
+	}
+}
+
+func proposalDetailEditButton() components.PageInterface {
+	updateFormName := getters.Static("proposals.ProposalUpdateForm")
+	return components.ButtonModalForm{
+		Label: "Edit Proposal Answers",
+		Icon:  "pencil",
+		Name:  updateFormName,
+		Url: lamu.RoutePath("proposals.UpdateRoute", map[string]getters.Getter[any]{
+			"id": getters.Any(getters.Key[uint]("proposal.ID")),
+		}),
+		FormPostURL: lamu.RoutePath("proposals.UpdateRoute", map[string]getters.Getter[any]{
+			"id": getters.Any(getters.Key[uint]("proposal.ID")),
+		}),
+		ModalUID: "proposal-update-modal",
+		Classes:  "btn-outline",
 	}
 }
 
@@ -236,8 +281,9 @@ func registerDetail() []registry.Pair[string, components.PageInterface] {
 			Page: components.Page{
 				Key: "proposals.GenerateProposalWithAi",
 			},
-			Label: "Generate Proposal with AI",
-			URL:   lamu.RoutePath("proposals.GenerateRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("proposal.ID"))}), Classes: "btn-primary",
+			Label:   "Generate Proposal with AI",
+			URL:     lamu.RoutePath("proposals.GenerateRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("proposal.ID"))}),
+			Classes: "btn-primary",
 		},
 	}
 
@@ -260,9 +306,18 @@ func registerDetail() []registry.Pair[string, components.PageInterface] {
 								},
 							}},
 							components.ContainerColumn{Children: []components.PageInterface{
+								components.ContainerRow{
+									Classes: "flex flex-wrap gap-2 my-2",
+									Children: []components.PageInterface{
+										components.ShowIf{
+											Getter:   getters.Any(getterIdleGeneration()),
+											Children: idleSection,
+										},
+										proposalDetailEditButton(),
+									},
+								},
 								components.ShowIf{Getter: getters.Any(getterGenerated()), Children: generatedSection},
 								components.ShowIf{Getter: getters.Any(getterGenerationPending()), Children: pendingSection},
-								components.ShowIf{Getter: getters.Any(getterIdleGeneration()), Children: idleSection},
 							}},
 						}},
 					},

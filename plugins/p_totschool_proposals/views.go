@@ -3,6 +3,7 @@ package p_totschool_proposals
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -77,6 +78,38 @@ type proposalFormPatcher struct{}
 func (proposalFormPatcher) Patch(_ views.View, r *http.Request, formData map[string]any, formErrors map[string]error) (map[string]any, map[string]error) {
 	user := p_users.UserFromContext(r.Context(), "proposalFormPatcher")
 	formData["CreatedByID"] = user.ID
+	if r.Method != http.MethodPost {
+		return formData, formErrors
+	}
+
+	ctx := views.ContextWithErrorsAndValues(r.Context(), formData, formErrors)
+	clientID, err := getters.Key[uint]("$in.ClientID")(ctx)
+	if err != nil || clientID == 0 {
+		return formData, formErrors
+	}
+
+	db, err := getters.DBFromContext(r.Context())
+	if err != nil {
+		slog.Error("proposalFormPatcher: db from context", "error", err)
+		return formData, formErrors
+	}
+
+	existing, err := gorm.G[Proposal](db).Where("client_id = ?", clientID).First(r.Context())
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return formData, formErrors
+		}
+		slog.Error("proposalFormPatcher: lookup existing proposal", "error", err, "clientID", clientID)
+		return formData, formErrors
+	}
+
+	if raw := r.Context().Value("proposal"); raw != nil {
+		if current, ok := raw.(Proposal); ok && current.ID == existing.ID {
+			return formData, formErrors
+		}
+	}
+
+	formErrors["ClientID"] = errors.New("this client already has a proposal")
 	return formData, formErrors
 }
 

@@ -206,10 +206,11 @@ func registerDashboard() []registry.Pair[string, components.PageInterface] {
 					Classes: "w-full mt-2 mb-6",
 				},
 				components.FieldTitle{
-					Getter:  getters.Static("Today's Schedule"),
-					Classes: "text-white",
+					Getter: getters.Static("Today's Schedule"),
 				},
-				components.FieldText{Getter: dashboardTodayAppointmentsSummary()},
+				components.FieldText{
+					Getter: dashboardTodayAppointmentsSummary(),
+				},
 				components.ButtonLink{
 					Label:   "View timeline",
 					Link:    lamu.RoutePath("appointments.CardTimelineRoute", nil),
