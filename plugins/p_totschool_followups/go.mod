@@ -1,21 +1,16 @@
-module github.com/UniquityVentures/totschool
+module github.com/UniquityVentures/totschool/plugins/p_totschool_followups
 
 go 1.26.1
 
 require (
 	github.com/UniquityVentures/lamu v0.4.13
-	github.com/UniquityVentures/lamu/plugins/p_dashboard v0.4.11
-	github.com/UniquityVentures/lamu/plugins/p_google_genai v0.4.11
-	github.com/UniquityVentures/lamu/plugins/p_livereloading v0.4.11
-	github.com/UniquityVentures/lamu/plugins/p_pwa v0.4.11
-	github.com/UniquityVentures/totschool/plugins/p_totschool_appointments v0.0.0-20260519014749-5ea2917068a8
+	github.com/UniquityVentures/lamu/plugins/p_users v0.4.11
 	github.com/UniquityVentures/totschool/plugins/p_totschool_clients v0.0.0-20260607123844-b1c31fab7d72
-	github.com/UniquityVentures/totschool/plugins/p_totschool_dashboard v0.0.0-20260607034441-badf929c56a7
-	github.com/UniquityVentures/totschool/plugins/p_totschool_export v0.0.0-20260519014749-5ea2917068a8
-	github.com/UniquityVentures/totschool/plugins/p_totschool_followups v0.0.0
 	github.com/UniquityVentures/totschool/plugins/p_totschool_proposals v0.0.0-20260519014749-5ea2917068a8
-	github.com/UniquityVentures/totschool/plugins/p_totschool_tally v0.0.0-20260519014749-5ea2917068a8
-	github.com/UniquityVentures/totschool/plugins/p_totschool_users v0.0.0-20260519014749-5ea2917068a8
+	github.com/alnah/go-md2pdf v1.9.2
+	google.golang.org/genai v1.57.0
+	gorm.io/gorm v1.31.1
+	maragu.dev/gomponents v1.3.0
 )
 
 require (
@@ -28,10 +23,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/BurntSushi/toml v1.6.0 // indirect
-	github.com/UniquityVentures/lamu/plugins/p_export v0.4.11 // indirect
-	github.com/UniquityVentures/lamu/plugins/p_users v0.4.11 // indirect
 	github.com/alecthomas/chroma/v2 v2.2.0 // indirect
-	github.com/alnah/go-md2pdf v1.9.2 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/catppuccin/go v0.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -78,17 +70,11 @@ require (
 	github.com/nyaruka/phonenumbers v1.7.4 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/pressly/goose/v3 v3.27.1 // indirect
-	github.com/richardlehane/mscfb v1.0.6 // indirect
-	github.com/richardlehane/msoleps v1.0.6 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/sethvargo/go-retry v0.3.0 // indirect
 	github.com/spf13/cobra v1.10.2 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
-	github.com/tiendc/go-deepcopy v1.7.2 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	github.com/xuri/efp v0.0.1 // indirect
-	github.com/xuri/excelize/v2 v2.10.1 // indirect
-	github.com/xuri/nfp v0.0.2-0.20250530014748-2ddeb826f9a9 // indirect
 	github.com/ysmood/fetchup v0.2.3 // indirect
 	github.com/ysmood/goob v0.4.0 // indirect
 	github.com/ysmood/got v0.40.0 // indirect
@@ -108,7 +94,6 @@ require (
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.44.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
-	google.golang.org/genai v1.57.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260420184626-e10c466a9529 // indirect
 	google.golang.org/grpc v1.80.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
@@ -116,8 +101,4 @@ require (
 	gorm.io/driver/mysql v1.6.0 // indirect
 	gorm.io/driver/postgres v1.6.0 // indirect
 	gorm.io/driver/sqlite v1.6.0 // indirect
-	gorm.io/gorm v1.31.1 // indirect
-	maragu.dev/gomponents v1.3.0 // indirect
 )
-
-replace github.com/UniquityVentures/totschool/plugins/p_totschool_followups => ./plugins/p_totschool_followups

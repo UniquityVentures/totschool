@@ -14,6 +14,7 @@ import (
 	"github.com/UniquityVentures/totschool/plugins/p_totschool_clients"
 	"github.com/UniquityVentures/totschool/plugins/p_totschool_dashboard"
 	"github.com/UniquityVentures/totschool/plugins/p_totschool_export"
+	"github.com/UniquityVentures/totschool/plugins/p_totschool_followups"
 	"github.com/UniquityVentures/totschool/plugins/p_totschool_proposals"
 	"github.com/UniquityVentures/totschool/plugins/p_totschool_tally"
 	"github.com/UniquityVentures/totschool/plugins/p_totschool_users"
@@ -29,6 +30,7 @@ func main() {
 		p_totschool_users.OtpPluginForTotschool(),
 		p_totschool_appointments.GetPlugin(),
 		p_totschool_proposals.GetPlugin(),
+		p_totschool_followups.GetPlugin(),
 		p_totschool_tally.GetPlugin(),
 		p_totschool_dashboard.GetPlugin(),
 		p_totschool_export.GetPlugin(),
