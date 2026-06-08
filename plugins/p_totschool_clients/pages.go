@@ -82,7 +82,6 @@ func registerMenus() []registry.Pair[string, components.PageInterface] {
 			},
 			Children: []components.PageInterface{
 				components.SidebarMenuItem{Title: getters.Static("Client Detail"), Url: lamu.RoutePath("clients.DetailRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("client.ID"))})},
-				components.SidebarMenuItem{Title: getters.Static("Edit Client"), Url: lamu.RoutePath("clients.UpdateRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("client.ID"))})},
 			},
 		}},
 	}
@@ -139,37 +138,31 @@ func registerForms() []registry.Pair[string, components.PageInterface] {
 				},
 			},
 		}},
-		{Key: "clients.ClientUpdateForm", Value: components.ShellScaffold{
-			Sidebar: []components.PageInterface{lamu.DynamicPage{Name: "clients.ClientDetailMenu"}},
+		{Key: "clients.ClientUpdateForm", Value: components.Modal{
+			UID: "client-update-modal",
 			Children: []components.PageInterface{
-				&components.FormListenBoostedPost{
-					Name:      updateFormName,
-					ActionURL: lamu.RoutePath("clients.UpdateRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("client.ID"))}),
-					Children: []components.PageInterface{
-						components.FormComponent[Client]{
-							Getter:        getters.Key[Client]("client"),
-							Attr:          getters.FormBubbling(updateFormName),
-							Title:         "Edit Client",
-							Subtitle:      "Update client details",
-							ChildrenInput: append(clientFormFields(), clientStatusField()),
-							ChildrenAction: []components.PageInterface{
+				components.FormComponent[Client]{
+					Getter:        getters.Key[Client]("client"),
+					Attr:          getters.FormBubbling(updateFormName),
+					Title:         "Edit Client",
+					Subtitle:      "Update client details",
+					ChildrenInput: append(clientFormFields(), clientStatusField()),
+					ChildrenAction: []components.PageInterface{
+						components.ContainerRow{
+							Classes: "flex flex-wrap justify-between gap-2 mt-2 items-center",
+							Children: []components.PageInterface{
 								components.ContainerRow{
-									Classes: "flex flex-wrap justify-between gap-2 mt-2 items-center",
+									Classes: "flex justify-end gap-2",
 									Children: []components.PageInterface{
-										components.ContainerRow{
-											Classes: "flex justify-end gap-2",
-											Children: []components.PageInterface{
-												components.ButtonSubmit{Label: "Save Client"},
-												components.ButtonModalForm{
-													Label:       "Delete",
-													Icon:        "trash",
-													Name:        deleteFormName,
-													Url:         lamu.RoutePath("clients.DeleteRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("client.ID"))}),
-													FormPostURL: lamu.RoutePath("clients.DeleteRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("client.ID"))}),
-													ModalUID:    "client-delete-modal",
-													Classes:     "btn-error",
-												},
-											},
+										components.ButtonSubmit{Label: "Save Client"},
+										components.ButtonModalForm{
+											Label:       "Delete",
+											Icon:        "trash",
+											Name:        deleteFormName,
+											Url:         lamu.RoutePath("clients.DeleteRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("client.ID"))}),
+											FormPostURL: lamu.RoutePath("clients.DeleteRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("client.ID"))}),
+											ModalUID:    "client-delete-modal",
+											Classes:     "btn-error",
 										},
 									},
 								},
@@ -233,12 +226,25 @@ func registerDetail() []registry.Pair[string, components.PageInterface] {
 								components.FieldTitle{Getter: getters.Key[string]("$in.Name")},
 								components.LabelInline{Title: "Address", Children: []components.PageInterface{components.FieldText{Getter: getters.Deref(getters.Key[*string]("$in.Address"))}}},
 								components.LabelInline{Title: "Phone", Children: []components.PageInterface{components.FieldPhone{Getter: getters.Deref(getters.Key[*string]("$in.Phone"))}}},
-								components.LabelInline{Title: "Status", Children: []components.PageInterface{components.FieldText{Getter: registry.PairValueFromKey(getters.Key[ClientStatus]("$in.Status"), ClientStatusChoices)}}},
 								components.LabelInline{Title: "Remarks", Children: []components.PageInterface{components.FieldText{Getter: getters.Deref(getters.Key[*string]("$in.Remarks"))}}},
 								components.LabelInline{
 									Page:     components.Page{Roles: clientAdminRoles},
 									Title:    "Created By",
 									Children: []components.PageInterface{components.FieldText{Getter: getters.ForeignKey[p_users.User, uint, string](getters.Key[uint]("$in.CreatedByID"), "Name")}},
+								},
+								components.LabelInline{Title: "Status", Children: []components.PageInterface{components.FieldText{Getter: registry.PairValueFromKey(getters.Key[ClientStatus]("$in.Status"), ClientStatusChoices)}}},
+								components.ButtonModalForm{
+									Label: "Edit",
+									Icon:  "pencil",
+									Name:  getters.Static("clients.ClientUpdateForm"),
+									Url: lamu.RoutePath("clients.UpdateRoute", map[string]getters.Getter[any]{
+										"id": getters.Any(getters.Key[uint]("client.ID")),
+									}),
+									FormPostURL: lamu.RoutePath("clients.UpdateRoute", map[string]getters.Getter[any]{
+										"id": getters.Any(getters.Key[uint]("client.ID")),
+									}),
+									ModalUID: "client-update-modal",
+									Classes:  "mt-4",
 								},
 							},
 						},
