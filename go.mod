@@ -12,7 +12,7 @@ require (
 	github.com/UniquityVentures/totschool/plugins/p_totschool_clients v0.0.0-20260607123844-b1c31fab7d72
 	github.com/UniquityVentures/totschool/plugins/p_totschool_dashboard v0.0.0-20260607034441-badf929c56a7
 	github.com/UniquityVentures/totschool/plugins/p_totschool_export v0.0.0-20260519014749-5ea2917068a8
-	github.com/UniquityVentures/totschool/plugins/p_totschool_followups v0.0.0
+	github.com/UniquityVentures/totschool/plugins/p_totschool_followups v0.0.0-20260608142744-514102257185
 	github.com/UniquityVentures/totschool/plugins/p_totschool_proposals v0.0.0-20260519014749-5ea2917068a8
 	github.com/UniquityVentures/totschool/plugins/p_totschool_tally v0.0.0-20260519014749-5ea2917068a8
 	github.com/UniquityVentures/totschool/plugins/p_totschool_users v0.0.0-20260519014749-5ea2917068a8
@@ -45,7 +45,6 @@ require (
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
-	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dlclark/regexp2 v1.7.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
@@ -76,7 +75,6 @@ require (
 	github.com/mitchellh/hashstructure/v2 v2.0.2 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/nyaruka/phonenumbers v1.7.4 // indirect
-	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/pressly/goose/v3 v3.27.1 // indirect
 	github.com/richardlehane/mscfb v1.0.6 // indirect
 	github.com/richardlehane/msoleps v1.0.6 // indirect
@@ -119,5 +117,3 @@ require (
 	gorm.io/gorm v1.31.1 // indirect
 	maragu.dev/gomponents v1.3.0 // indirect
 )
-
-replace github.com/UniquityVentures/totschool/plugins/p_totschool_followups => ./plugins/p_totschool_followups

@@ -209,6 +209,7 @@ github.com/UniquityVentures/lamu/plugins/p_otp v0.4.10 h1:CxO1ZcuH19vu3fcs3JCL2w
 github.com/UniquityVentures/lamu/plugins/p_otp v0.4.10/go.mod h1:ARxkRSm1cf5tNbnsXmawTQl/KbC6y9C92icQkYiDX2I=
 github.com/UniquityVentures/lamu/plugins/p_pwa v0.4.10 h1:TpunrTREvBRebgHs2Fn0IeiPZY1BXOSyFb/oIp4kxOc=
 github.com/UniquityVentures/lamu/plugins/p_pwa v0.4.10/go.mod h1:dZLWhuYS87xpcMViaP5qAoeZyjVb2RdM1AIOYJdDu0s=
+github.com/UniquityVentures/totschool/plugins/p_totschool_followups v0.0.0-20260608142744-514102257185/go.mod h1:rnVb+H4oyWhcBYSgJnJa0NHSW354BQStDccURld76EQ=
 github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b/go.mod h1:1KcenG0jGWcpt8ov532z81sp/kMMUG485J2InIOyADM=
 github.com/andybalholm/brotli v1.2.1/go.mod h1:rzTDkvFWvIrjDXZHkuS16NPggd91W3kUSvPlQ1pLaKY=
 github.com/anthropics/anthropic-sdk-go v1.19.0/go.mod h1:WTz31rIUHUHqai2UslPpw5CwXrQP3geYBioRV4WOLvE=

@@ -40,6 +40,8 @@ github.com/UniquityVentures/totschool/plugins/p_totschool_dashboard v0.0.0-20260
 github.com/UniquityVentures/totschool/plugins/p_totschool_dashboard v0.0.0-20260607034441-badf929c56a7/go.mod h1:LE1rENDFrh0ZK41XuHvVSBv3hwl5g0qG5MXOC80RJzA=
 github.com/UniquityVentures/totschool/plugins/p_totschool_export v0.0.0-20260519014749-5ea2917068a8 h1:zkcfIu3pXdGFDos7/3A1cZk28DVYtrg7gNMAW6VhKs0=
 github.com/UniquityVentures/totschool/plugins/p_totschool_export v0.0.0-20260519014749-5ea2917068a8/go.mod h1:niu2TCWu3BvzVJqJG/oPgdg8P6BikICIy4KodAnWErs=
+github.com/UniquityVentures/totschool/plugins/p_totschool_followups v0.0.0-20260608142744-514102257185 h1:T1ZAJQD7df7mfUSYxJiIbEOesMeZ5zPLAF8ylvcvh6c=
+github.com/UniquityVentures/totschool/plugins/p_totschool_followups v0.0.0-20260608142744-514102257185/go.mod h1:rnVb+H4oyWhcBYSgJnJa0NHSW354BQStDccURld76EQ=
 github.com/UniquityVentures/totschool/plugins/p_totschool_proposals v0.0.0-20260519014749-5ea2917068a8 h1:ZyHENphlXj9RemxiTjzJr8LG3z6FOLJjdm+4FVSPRO8=
 github.com/UniquityVentures/totschool/plugins/p_totschool_proposals v0.0.0-20260519014749-5ea2917068a8/go.mod h1:E5dzFL29N9TNbpY5eMsfitiwlk1obYLK+MxVu4ESM6M=
 github.com/UniquityVentures/totschool/plugins/p_totschool_tally v0.0.0-20260519014749-5ea2917068a8 h1:H/6ZOJ4lOcK45smIVyMmbmBU/+1mvecq3fXEZpkz1sA=
