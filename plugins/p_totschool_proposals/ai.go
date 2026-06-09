@@ -3,6 +3,7 @@ package p_totschool_proposals
 import (
 	"context"
 	"log"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -60,6 +61,8 @@ func runWorker(db *gorm.DB) {
 	clientConfig := &genai.ClientConfig{}
 	if aiConfig.APIKey != "" {
 		clientConfig.APIKey = aiConfig.APIKey
+	} else {
+		slog.Warn("p_totschool_proposals: no apiKey configured in [Plugins.p_totschool_proposals]; falling back to local environment API key (GOOGLE_API_KEY / GEMINI_API_KEY)")
 	}
 	model := "gemini-2.5-flash"
 	if aiConfig.Model != "" {

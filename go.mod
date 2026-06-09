@@ -3,11 +3,11 @@ module github.com/UniquityVentures/totschool
 go 1.26.1
 
 require (
-	github.com/UniquityVentures/lamu v0.4.15
-	github.com/UniquityVentures/lamu/plugins/p_dashboard v0.4.15
-	github.com/UniquityVentures/lamu/plugins/p_google_genai v0.4.15
-	github.com/UniquityVentures/lamu/plugins/p_livereloading v0.4.15
-	github.com/UniquityVentures/lamu/plugins/p_pwa v0.4.15
+	github.com/UniquityVentures/lamu v0.4.16
+	github.com/UniquityVentures/lamu/plugins/p_dashboard v0.4.16
+	github.com/UniquityVentures/lamu/plugins/p_google_genai v0.4.16
+	github.com/UniquityVentures/lamu/plugins/p_livereloading v0.4.16
+	github.com/UniquityVentures/lamu/plugins/p_pwa v0.4.16
 	github.com/UniquityVentures/totschool/plugins/p_totschool_appointments v0.0.0-20260519014749-5ea2917068a8
 	github.com/UniquityVentures/totschool/plugins/p_totschool_clients v0.0.0-20260607123844-b1c31fab7d72
 	github.com/UniquityVentures/totschool/plugins/p_totschool_dashboard v0.0.0-20260607034441-badf929c56a7
@@ -28,8 +28,8 @@ require (
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/BurntSushi/toml v1.6.0 // indirect
-	github.com/UniquityVentures/lamu/plugins/p_export v0.4.11 // indirect
-	github.com/UniquityVentures/lamu/plugins/p_users v0.4.11 // indirect
+	github.com/UniquityVentures/lamu/plugins/p_export v0.4.16 // indirect
+	github.com/UniquityVentures/lamu/plugins/p_users v0.4.16 // indirect
 	github.com/alecthomas/chroma/v2 v2.2.0 // indirect
 	github.com/alnah/go-md2pdf v1.9.2 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect

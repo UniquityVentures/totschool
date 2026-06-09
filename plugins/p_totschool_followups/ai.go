@@ -3,6 +3,7 @@ package p_totschool_followups
 import (
 	"context"
 	"log"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -56,6 +57,8 @@ func runWorker(db *gorm.DB) {
 	clientConfig := &genai.ClientConfig{}
 	if followupAIConfig.APIKey != "" {
 		clientConfig.APIKey = followupAIConfig.APIKey
+	} else {
+		slog.Warn("p_totschool_followups: no apiKey configured in [Plugins.p_totschool_followups]; falling back to local environment API key (GOOGLE_API_KEY / GEMINI_API_KEY)")
 	}
 	model := "gemini-2.5-flash"
 	if followupAIConfig.Model != "" {
