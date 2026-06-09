@@ -32,11 +32,24 @@ func (clientFormPatcher) Patch(_ views.View, r *http.Request, formData map[strin
 	return formData, formErrors
 }
 
-type clientSelectQueryPatcher struct{}
+type clientActiveOnlyQueryPatcher struct{}
 
-func (clientSelectQueryPatcher) Patch(_ views.View, _ *http.Request, query gorm.ChainInterface[Client]) gorm.ChainInterface[Client] {
+func (clientActiveOnlyQueryPatcher) Patch(_ views.View, _ *http.Request, query gorm.ChainInterface[Client]) gorm.ChainInterface[Client] {
 	return query.Where("status = ?", ClientStatusActive)
 }
+
+type clientWithoutProposalSelectQueryPatcher struct{}
+
+func (clientWithoutProposalSelectQueryPatcher) Patch(_ views.View, r *http.Request, query gorm.ChainInterface[Client]) gorm.ChainInterface[Client] {
+	if r.URL.Query().Get("without_proposal") == "" {
+		return query
+	}
+	return query.Where(
+		"NOT EXISTS (SELECT 1 FROM proposals p WHERE p.client_id = clients.id AND p.client_id IS NOT NULL AND p.deleted_at IS NULL)",
+	)
+}
+
+var clientStatusNameOrderPatcher = views.QueryPatcherOrderBy[Client]{Order: "status ASC, name ASC"}
 
 func pluginViews() lamu.PluginFeatures[*views.View] {
 	return lamu.PluginFeatures[*views.View]{
@@ -48,7 +61,7 @@ func pluginViews() lamu.PluginFeatures[*views.View] {
 					PageSize: getters.Static(uint(5)),
 					QueryPatchers: views.QueryPatchers[Client]{
 						{Key: "clients.query", Value: clientQueryPatcher{}},
-						{Key: "clients.dashboard_active", Value: clientSelectQueryPatcher{}},
+						{Key: "clients.dashboard_active", Value: clientActiveOnlyQueryPatcher{}},
 						{Key: "clients.dashboard_order", Value: views.QueryPatcherOrderBy[Client]{Order: "name ASC"}},
 					},
 				}).
@@ -59,6 +72,7 @@ func pluginViews() lamu.PluginFeatures[*views.View] {
 					Key: getters.Static("clients"),
 					QueryPatchers: views.QueryPatchers[Client]{
 						{Key: "clients.query", Value: clientQueryPatcher{}},
+						{Key: "clients.list_order", Value: clientStatusNameOrderPatcher},
 					},
 				})},
 			{Key: "clients.DetailView", Value: lamu.GetPageView("clients.ClientDetail").
@@ -108,7 +122,8 @@ func pluginViews() lamu.PluginFeatures[*views.View] {
 					Key: getters.Static("clients"),
 					QueryPatchers: views.QueryPatchers[Client]{
 						{Key: "clients.query", Value: clientQueryPatcher{}},
-						{Key: "clients.select_active", Value: clientSelectQueryPatcher{}},
+						{Key: "clients.without_proposal", Value: clientWithoutProposalSelectQueryPatcher{}},
+						{Key: "clients.select_order", Value: clientStatusNameOrderPatcher},
 					},
 				})},
 		},

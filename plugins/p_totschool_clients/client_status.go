@@ -17,7 +17,7 @@ const (
 
 var ClientStatusChoices = []registry.Pair[ClientStatus, string]{
 	{Key: ClientStatusActive, Value: "Active"},
-	{Key: ClientStatusArchived, Value: "Archived"},
+	{Key: ClientStatusArchived, Value: "Sleeping"},
 }
 
 func (s ClientStatus) Value() (driver.Value, error) {

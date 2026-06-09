@@ -87,30 +87,46 @@ func registerMenus() []registry.Pair[string, components.PageInterface] {
 	}
 }
 
+func clientFilterInputs() []components.PageInterface {
+	return []components.PageInterface{
+		components.InputText{Label: "Name", Name: "Name", Getter: getters.Key[string]("$get.Name")},
+		components.ContainerError{
+			Error: getters.Key[error]("$error.Status"),
+			Children: []components.PageInterface{
+				components.InputSelect[ClientStatus]{
+					Label:   "Status",
+					Name:    "Status",
+					Choices: getters.Static(ClientStatusChoices),
+					Getter:  registry.PairFromGetter(getters.Key[ClientStatus]("$get.Status"), ClientStatusChoices),
+				},
+			},
+		},
+	}
+}
+
+func clientFilterActions() []components.PageInterface {
+	return []components.PageInterface{
+		components.ContainerRow{Classes: "flex gap-2", Children: []components.PageInterface{
+			components.ButtonSubmit{Label: "Apply Filters"},
+			components.ButtonClear{Label: "Clear"},
+		}},
+	}
+}
+
 func registerFilter() []registry.Pair[string, components.PageInterface] {
 	return []registry.Pair[string, components.PageInterface]{
 		{Key: "clients.ClientFilter", Value: components.FormComponent[Client]{
-			Attr: getters.FormBoostedGet(lamu.RoutePath("clients.ListRoute", nil)),
-			ChildrenInput: []components.PageInterface{
-				components.InputText{Label: "Name", Name: "Name", Getter: getters.Key[string]("$get.Name")},
-				components.ContainerError{
-					Error: getters.Key[error]("$error.Status"),
-					Children: []components.PageInterface{
-						components.InputSelect[ClientStatus]{
-							Label:   "Status",
-							Name:    "Status",
-							Choices: getters.Static(ClientStatusChoices),
-							Getter:  registry.PairFromGetter(getters.Key[ClientStatus]("$get.Status"), ClientStatusChoices),
-						},
-					},
-				},
-			},
-			ChildrenAction: []components.PageInterface{
-				components.ContainerRow{Classes: "flex gap-2", Children: []components.PageInterface{
-					components.ButtonSubmit{Label: "Apply Filters"},
-					components.ButtonClear{Label: "Clear"},
-				}},
-			},
+			Attr:           getters.FormBoostedGet(lamu.RoutePath("clients.ListRoute", nil)),
+			ChildrenInput:  clientFilterInputs(),
+			ChildrenAction: clientFilterActions(),
+		}},
+		{Key: "clients.ClientSelectionFilter", Value: components.FormComponent[Client]{
+			Attr: getters.FormBoostedGet(lamu.RoutePath("clients.SelectRoute", nil)),
+			ChildrenInput: append(clientFilterInputs(),
+				components.InputText{Hidden: true, Name: "target_input", Getter: getters.Key[string]("$get.target_input")},
+				components.InputText{Hidden: true, Name: "without_proposal", Getter: getters.Key[string]("$get.without_proposal")},
+			),
+			ChildrenAction: clientFilterActions(),
 		}},
 	}
 }
@@ -199,10 +215,21 @@ func registerDashboard() []registry.Pair[string, components.PageInterface] {
 						}},
 					},
 				},
-				components.ButtonLink{
-					Label:   "View all",
-					Link:    lamu.RoutePath("clients.ListRoute", nil),
-					Classes: "w-full mt-2 mb-6",
+				components.ContainerRow{
+					Classes: "flex flex-wrap gap-2 mt-2 mb-6",
+					Children: []components.PageInterface{
+						components.ButtonLink{
+							Label:   "View all",
+							Link:    lamu.RoutePath("clients.ListRoute", nil),
+							Classes: "btn-outline",
+						},
+						components.ButtonLink{
+							Label:   "Create new client",
+							Link:    lamu.RoutePath("clients.CreateRoute", nil),
+							Icon:    "plus",
+							Classes: "btn-primary",
+						},
+					},
 				},
 				components.FieldTitle{
 					Getter: getters.Static("Today's Schedule"),
@@ -213,7 +240,7 @@ func registerDashboard() []registry.Pair[string, components.PageInterface] {
 				components.ButtonLink{
 					Label:   "View timeline",
 					Link:    lamu.RoutePath("appointments.CardTimelineRoute", nil),
-					Classes: "w-full mt-2",
+					Classes: "btn-outline mt-2",
 				},
 			},
 		}},
@@ -324,6 +351,9 @@ func registerSelection() []registry.Pair[string, components.PageInterface] {
 					UID:   "client-selection-table",
 					Title: "Select Client",
 					Data:  getters.Key[components.ObjectList[Client]]("clients"),
+					Actions: []components.PageInterface{
+						&components.TableButtonFilter{Child: lamu.DynamicPage{Name: "clients.ClientSelectionFilter"}},
+					},
 					RowAttr: getters.RowAttrSelectNamed(
 						getters.IfOrElse(getters.Key[string]("$get.target_input"), getters.Static("ClientID")),
 						getters.Key[uint]("$row.ID"),

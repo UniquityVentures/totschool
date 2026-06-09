@@ -69,33 +69,64 @@ func registerFilter() []registry.Pair[string, components.PageInterface] {
 	}}}
 }
 
+func proposalClientPickerField() components.PageInterface {
+	return components.ContainerError{
+		Error: getters.Key[error]("$error.ClientID"),
+		Children: []components.PageInterface{
+			components.InputForeignKey[p_totschool_clients.Client]{
+				Name:        "ClientID",
+				Label:       "Client",
+				Url:         getters.Format("%s?without_proposal=1", getters.Any(lamu.RoutePath("clients.SelectRoute", nil))),
+				Display:     getters.Key[string]("$in.Name"),
+				Placeholder: "Select a client...",
+				Getter:      getters.Association[p_totschool_clients.Client](proposalFormClientID()),
+			},
+		},
+	}
+}
+
+func proposalClientHiddenField() components.PageInterface {
+	return components.InputForeignKey[p_totschool_clients.Client]{
+		Hidden: true,
+		Name:   "ClientID",
+		Getter: getters.Association[p_totschool_clients.Client](proposalFormClientID()),
+	}
+}
+
+func proposalClientAssignmentFields() []components.PageInterface {
+	return []components.PageInterface{
+		components.ShowIf{
+			Getter:   getters.Any(getterProposalUnassigned()),
+			Children: []components.PageInterface{proposalClientPickerField()},
+		},
+		components.ShowIf{
+			Getter:   getters.Any(getterProposalAssigned()),
+			Children: []components.PageInterface{proposalClientHiddenField()},
+		},
+	}
+}
+
+func proposalQuestionnaireCoreFields() []components.PageInterface {
+	return []components.PageInterface{
+		components.InputText{Label: "Proposal Title", Name: "Title", Required: true, Getter: getters.Key[string]("$in.Title")},
+		components.InputKeyValue{Getter: getters.Key[datatypes.JSON]("$in.Answers"), Keys: getters.Static(QUESTIONS), Name: "Answers"},
+	}
+}
+
 func proposalQuestionnaireFields(includeClientPicker bool) []components.PageInterface {
 	fields := []components.PageInterface{}
 	if includeClientPicker {
-		fields = append(fields, components.ContainerError{
-			Error: getters.Key[error]("$error.ClientID"),
-			Children: []components.PageInterface{
-				components.InputForeignKey[p_totschool_clients.Client]{
-					Name:        "ClientID",
-					Label:       "Client",
-					Url:         lamu.RoutePath("clients.SelectRoute", nil),
-					Display:     getters.Key[string]("$in.Name"),
-					Placeholder: "Select a client...",
-					Getter:      getters.Association[p_totschool_clients.Client](getters.Key[uint]("$in.ClientID")),
-				},
-			},
-		})
+		fields = append(fields, proposalClientPickerField())
 	} else {
-		fields = append(fields, components.InputForeignKey[p_totschool_clients.Client]{
-			Hidden: true,
-			Name:   "ClientID",
-			Getter: getters.Association[p_totschool_clients.Client](getters.Key[uint]("$in.ClientID")),
-		})
+		fields = append(fields, proposalClientHiddenField())
 	}
-	fields = append(fields,
-		components.InputText{Label: "Proposal Title", Name: "Title", Required: true, Getter: getters.Key[string]("$in.Title")},
-		components.InputKeyValue{Getter: getters.Key[datatypes.JSON]("$in.Answers"), Keys: getters.Static(QUESTIONS), Name: "Answers"},
-	)
+	fields = append(fields, proposalQuestionnaireCoreFields()...)
+	return fields
+}
+
+func proposalUpdateFormFields() []components.PageInterface {
+	fields := proposalClientAssignmentFields()
+	fields = append(fields, proposalQuestionnaireCoreFields()...)
 	return fields
 }
 
@@ -124,7 +155,7 @@ func registerForms() []registry.Pair[string, components.PageInterface] {
 					Attr:          getters.FormBubbling(updateFormName),
 					Title:         "Edit Proposal",
 					Subtitle:      "Update questionnaire answers",
-					ChildrenInput: proposalQuestionnaireFields(false),
+					ChildrenInput: proposalUpdateFormFields(),
 					ChildrenAction: []components.PageInterface{
 						components.ContainerRow{
 							Classes: "flex flex-wrap justify-end gap-2 mt-2",
@@ -158,7 +189,7 @@ func registerForms() []registry.Pair[string, components.PageInterface] {
 
 							Title:         "Edit Proposal",
 							Subtitle:      "Update questionnaire answers",
-							ChildrenInput: proposalQuestionnaireFields(false),
+							ChildrenInput: proposalUpdateFormFields(),
 							ChildrenAction: []components.PageInterface{
 								components.ContainerRow{
 									Classes: "flex flex-wrap justify-between gap-2 mt-2 items-center",
@@ -219,7 +250,7 @@ func registerTable() []registry.Pair[string, components.PageInterface] {
 func proposalDetailEditButton() components.PageInterface {
 	updateFormName := getters.Static("proposals.ProposalUpdateForm")
 	return components.ButtonModalForm{
-		Label: "Edit Proposal Answers",
+		Label: "Edit Proposal",
 		Icon:  "pencil",
 		Name:  updateFormName,
 		Url: lamu.RoutePath("proposals.UpdateRoute", map[string]getters.Getter[any]{

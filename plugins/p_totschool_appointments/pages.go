@@ -1,6 +1,8 @@
 package p_totschool_appointments
 
 import (
+	"context"
+
 	"github.com/UniquityVentures/lamu/components"
 	"github.com/UniquityVentures/lamu/getters"
 	"github.com/UniquityVentures/lamu/lamu"
@@ -24,13 +26,39 @@ func registerMenus() []registry.Pair[string, components.PageInterface] {
 	return []registry.Pair[string, components.PageInterface]{
 		{Key: "appointments.AppointmentDetailMenu", Value: components.SidebarMenu{
 			Title: getters.Format("Appointment: %s", getters.Any(getters.Key[string]("appointment.Client.Name"))),
-			Back: &components.SidebarMenuItem{
-				Title: getters.Static("Back to Appointments Timeline"),
-				Url:   lamu.RoutePath("appointments.CardTimelineRoute", nil),
-			},
+			Back:  appointmentDetailBackItem(),
 			Children: []components.PageInterface{
 				components.SidebarMenuItem{Title: getters.Static("Appointment Detail"), Url: lamu.RoutePath("appointments.DetailRoute", map[string]getters.Getter[any]{"id": getters.Any(getters.Key[uint]("appointment.ID"))})},
 			},
 		}},
+	}
+}
+
+func appointmentDetailBackItem() *components.SidebarMenuItem {
+	return &components.SidebarMenuItem{
+		Title: appointmentDetailBackTitle(),
+		Url:   appointmentDetailBackURL(),
+	}
+}
+
+func appointmentDetailBackTitle() getters.Getter[string] {
+	return func(ctx context.Context) (string, error) {
+		clientID, err := getters.Key[uint]("appointment.ClientID")(ctx)
+		if err == nil && clientID != 0 {
+			return "Back to Client", nil
+		}
+		return "Back to Appointments Timeline", nil
+	}
+}
+
+func appointmentDetailBackURL() getters.Getter[string] {
+	return func(ctx context.Context) (string, error) {
+		clientID, err := getters.Key[uint]("appointment.ClientID")(ctx)
+		if err == nil && clientID != 0 {
+			return lamu.RoutePath("clients.DetailRoute", map[string]getters.Getter[any]{
+				"id": getters.Any(getters.Static(clientID)),
+			})(ctx)
+		}
+		return lamu.RoutePath("appointments.CardTimelineRoute", nil)(ctx)
 	}
 }

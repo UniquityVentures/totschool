@@ -63,3 +63,39 @@ func getterIdleGeneration() getters.Getter[bool] {
 		return false, nil
 	}
 }
+
+func proposalFormClientID() getters.Getter[uint] {
+	return func(ctx context.Context) (uint, error) {
+		if id, err := getters.Key[uint]("$in.ClientID")(ctx); err == nil {
+			return id, nil
+		}
+		ptr, err := getters.Key[*uint]("$in.ClientID")(ctx)
+		if err != nil {
+			return 0, err
+		}
+		if ptr == nil {
+			return 0, nil
+		}
+		return *ptr, nil
+	}
+}
+
+func getterProposalUnassigned() getters.Getter[bool] {
+	return func(ctx context.Context) (bool, error) {
+		clientID, err := proposalFormClientID()(ctx)
+		if err != nil {
+			return false, err
+		}
+		return clientID == 0, nil
+	}
+}
+
+func getterProposalAssigned() getters.Getter[bool] {
+	return func(ctx context.Context) (bool, error) {
+		unassigned, err := getterProposalUnassigned()(ctx)
+		if err != nil {
+			return false, err
+		}
+		return !unassigned, nil
+	}
+}
