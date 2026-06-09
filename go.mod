@@ -3,11 +3,11 @@ module github.com/UniquityVentures/totschool
 go 1.26.1
 
 require (
-	github.com/UniquityVentures/lamu v0.4.14
-	github.com/UniquityVentures/lamu/plugins/p_dashboard v0.4.14
-	github.com/UniquityVentures/lamu/plugins/p_google_genai v0.4.14
-	github.com/UniquityVentures/lamu/plugins/p_livereloading v0.4.14
-	github.com/UniquityVentures/lamu/plugins/p_pwa v0.4.14
+	github.com/UniquityVentures/lamu v0.4.15
+	github.com/UniquityVentures/lamu/plugins/p_dashboard v0.4.15
+	github.com/UniquityVentures/lamu/plugins/p_google_genai v0.4.15
+	github.com/UniquityVentures/lamu/plugins/p_livereloading v0.4.15
+	github.com/UniquityVentures/lamu/plugins/p_pwa v0.4.15
 	github.com/UniquityVentures/totschool/plugins/p_totschool_appointments v0.0.0-20260519014749-5ea2917068a8
 	github.com/UniquityVentures/totschool/plugins/p_totschool_clients v0.0.0-20260607123844-b1c31fab7d72
 	github.com/UniquityVentures/totschool/plugins/p_totschool_dashboard v0.0.0-20260607034441-badf929c56a7
@@ -23,8 +23,8 @@ require (
 	charm.land/bubbletea/v2 v2.0.6 // indirect
 	charm.land/huh/v2 v2.0.3 // indirect
 	charm.land/lipgloss/v2 v2.0.3 // indirect
-	cloud.google.com/go v0.121.2 // indirect
-	cloud.google.com/go/auth v0.16.5 // indirect
+	cloud.google.com/go v0.123.0 // indirect
+	cloud.google.com/go/auth v0.20.0 // indirect
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/BurntSushi/toml v1.6.0 // indirect
@@ -58,8 +58,8 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
-	github.com/googleapis/gax-go/v2 v2.15.0 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.3.15 // indirect
+	github.com/googleapis/gax-go/v2 v2.22.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -106,8 +106,9 @@ require (
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.44.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
+	google.golang.org/api v0.278.0 // indirect
 	google.golang.org/genai v1.57.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260420184626-e10c466a9529 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260427160629-7cedc36a6bc4 // indirect
 	google.golang.org/grpc v1.80.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gorm.io/datatypes v1.2.7 // indirect
