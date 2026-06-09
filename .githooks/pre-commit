@@ -1,0 +1,25 @@
+#!/bin/sh
+# Reject commits that include staged files larger than 2 MiB.
+
+max_bytes=$((2 * 1024 * 1024))
+found=0
+
+for file in $(git diff --cached --name-only --diff-filter=ACMR); do
+	[ -f "$file" ] || continue
+	size=$(wc -c <"$file" | tr -d ' ')
+	if [ "$size" -gt "$max_bytes" ]; then
+		if [ "$found" -eq 0 ]; then
+			echo "ERROR: staged files exceed 2 MiB and cannot be committed:" >&2
+			found=1
+		fi
+		echo "  $file ($size bytes)" >&2
+	fi
+done
+
+if [ "$found" -ne 0 ]; then
+	echo "" >&2
+	echo "Add build artifacts to .gitignore instead of committing them." >&2
+	exit 1
+fi
+
+exit 0
